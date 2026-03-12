@@ -552,6 +552,12 @@ const CSS = `
       --fs-success-title: 28px;
     }
 
+    /* Unlock scrolling on mobile */
+    html, body, #root { overflow: auto; height: auto; }
+    .cr-root { height: auto; min-height: 100vh; overflow: auto; }
+    .cr-hero { min-height: 80vh; height: auto; }
+    .cr-cards-section { padding: 40px 0; }
+
     .cr-hook-bar { padding: 8px 16px; gap: 8px; }
     .cr-nav { padding: 0 16px; }
     .cr-nav-inner { padding: 14px 0; }
