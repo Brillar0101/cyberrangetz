@@ -303,8 +303,12 @@ const CSS = `
     padding: 5px 5px 5px 22px;
     backdrop-filter: blur(16px);
   }
-  .cr-step-input-row:focus-within { border-color: rgba(255,255,255,0.30); outline: none; }
-  .cr-step-input-row *:focus { outline: none; }
+  .cr-step-input-row:focus-within { border-color: rgba(255,255,255,0.30); }
+  .cr-step-input-row, .cr-step-input-row *,
+  .cr-email-input, .cr-email-submit {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent;
+  }
   .cr-email-input {
     flex: 1; background: none; border: none; outline: none;
     color: #fff; font-family: var(--font-ui); font-size: var(--fs-email); min-width: 0;

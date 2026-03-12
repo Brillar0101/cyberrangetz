@@ -51,10 +51,10 @@ body {
   transition-timing-function: ease;
 }
 
-/* Input focus ring */
-input:focus {
+/* Input focus ring — disabled for waitlist page, re-enable for full app */
+/* input:focus {
   box-shadow: 0 0 0 2px rgba(30, 181, 58, 0.3);
-}
+} */
 
 /* Button hover lift */
 button:not(:disabled):hover {
