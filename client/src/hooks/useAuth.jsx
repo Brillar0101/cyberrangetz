@@ -38,8 +38,13 @@ export function AuthProvider({ children }) {
       const res = await api('/api/auth/refresh', { method: 'POST' });
       setToken(res.accessToken);
       // Decode user from token
-      const payload = JSON.parse(atob(res.accessToken.split('.')[1]));
-      setUser({ id: payload.id, email: payload.email, name: payload.name });
+      try {
+        const payload = JSON.parse(atob(res.accessToken.split('.')[1]));
+        setUser({ id: payload.id, email: payload.email, name: payload.name });
+      } catch {
+        setUser(null);
+        setToken(null);
+      }
     } catch {
       setUser(null);
       setToken(null);

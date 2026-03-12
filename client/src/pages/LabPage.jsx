@@ -189,9 +189,9 @@ export default function LabPage() {
       </div>
 
       {/* Split view */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
         {/* Left panel — Steps */}
-        <div className="w-[40%] border-r border-cyber-border overflow-y-auto p-6 bg-cyber-darker/30">
+        <div className="w-full md:w-[40%] border-r border-cyber-border overflow-y-auto p-4 md:p-6 bg-cyber-darker/30">
           <div className="mb-6">
             <h2 className="text-xl font-bold">{lab.title}</h2>
             <p className="text-cyber-muted text-sm mt-1">Module: {lab.moduleName}</p>
@@ -206,7 +206,7 @@ export default function LabPage() {
         </div>
 
         {/* Right panel — Terminal */}
-        <div className="w-[60%] h-full min-h-0 bg-cyber-dark">
+        <div className="w-full md:w-[60%] h-full min-h-0 bg-cyber-dark">
           <Terminal sessionId={wsSessionId} token={token} onConnected={setConnected} />
         </div>
       </div>
