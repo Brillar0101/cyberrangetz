@@ -442,10 +442,11 @@ const CSS = `
   .cr-share-row {
     display: flex; align-items: center; gap: 8px;
     background: #fff; border-radius: 8px; padding: 10px 14px;
+    overflow: hidden; max-width: 100%; min-width: 0;
   }
   .cr-share-url {
     font-family: var(--font-mono); font-size: var(--fs-share-url); color: #111;
-    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
   }
   .cr-copy-btn {
     font-family: var(--font-mono); font-size: var(--fs-copy-btn); background: none; border: none;
@@ -584,7 +585,7 @@ const CSS = `
     .cr-cards-heading { padding: 24px 0; }
     .cr-card { padding: 16px 0; border-left: none; border-top: 1px solid var(--border); }
 
-    .cr-success-box { padding: 20px 16px; max-width: calc(100% - 40px); }
+    .cr-success-box { padding: 20px 16px; max-width: calc(100% - 40px); overflow: hidden; }
     .cr-share-row { flex-direction: column; gap: 8px; }
     .cr-share-url-box { max-width: 100%; }
 
@@ -704,7 +705,7 @@ export default function WaitlistPage() {
   }
 
   const shareUrl = referralCode
-    ? `${window.location.origin}/waitlist?ref=${referralCode}`
+    ? `${window.location.origin}/?ref=${referralCode}`
     : '';
 
   function copyLink() {
