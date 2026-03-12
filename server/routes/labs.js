@@ -9,7 +9,7 @@ const { createPty, sessions } = require('../services/terminalService');
 const router = express.Router();
 
 // Load all module files
-const labsDir = path.join(__dirname, '../../labs');
+const labsDir = path.join(__dirname, '../../labs/configs');
 const moduleFiles = fs.readdirSync(labsDir).filter(f => f.endsWith('.json')).sort();
 const modules = moduleFiles.map(f =>
   JSON.parse(fs.readFileSync(path.join(labsDir, f), 'utf-8'))

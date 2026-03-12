@@ -46,7 +46,41 @@ async function initDB() {
 
     ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS first_name VARCHAR(100);
     ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS last_name VARCHAR(100);
+    ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS last_tier_notified INTEGER DEFAULT 0;
+
+    CREATE INDEX IF NOT EXISTS idx_waitlist_referred_by ON waitlist(referred_by);
+    CREATE INDEX IF NOT EXISTS idx_waitlist_referral_code ON waitlist(referral_code);
+
+    CREATE TABLE IF NOT EXISTS referral_tiers (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(50) NOT NULL,
+      required_referrals INTEGER NOT NULL UNIQUE,
+      reward_description TEXT NOT NULL,
+      badge_emoji VARCHAR(10),
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+    INSERT INTO referral_tiers (name, required_referrals, reward_description, badge_emoji)
+    VALUES
+      ('Priority Access', 3, 'Move up the waitlist', '⚡'),
+      ('Early Beta', 5, 'First wave of beta invites', '🚀'),
+      ('Founding Member', 10, 'Permanent badge + free first month', '⭐')
+    ON CONFLICT (required_referrals) DO NOTHING;
   `);
+
+  // Backfill any stale referral_count values
+  await pool.query(`
+    UPDATE waitlist w
+    SET referral_count = sub.actual
+    FROM (
+      SELECT w2.id, COUNT(r.id) AS actual
+      FROM waitlist w2
+      LEFT JOIN waitlist r ON r.referred_by = w2.id
+      GROUP BY w2.id
+    ) sub
+    WHERE w.id = sub.id AND w.referral_count != sub.actual
+  `);
+
   console.log('Database tables initialized');
 }
 

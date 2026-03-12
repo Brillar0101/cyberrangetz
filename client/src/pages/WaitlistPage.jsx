@@ -391,6 +391,34 @@ const CSS = `
   }
   .cr-celebrate-sub { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
 
+  /* ── Tier milestones ── */
+  .cr-tiers-row {
+    display: flex; justify-content: space-between; margin: 10px 0 4px;
+    position: relative;
+  }
+  .cr-tier-marker {
+    display: flex; flex-direction: column; align-items: center;
+    font-size: 10px; color: var(--muted); gap: 2px;
+  }
+  .cr-tier-marker.unlocked { color: var(--yellow); }
+  .cr-tier-marker .tier-emoji { font-size: 16px; }
+  .cr-tier-marker .tier-name { font-family: var(--font-mono); letter-spacing: 0.06em; }
+
+  /* ── Share buttons ── */
+  .cr-share-btns {
+    display: flex; gap: 8px; margin-top: 10px; justify-content: center;
+  }
+  .cr-share-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; border: none;
+    cursor: pointer; transition: opacity 0.2s; text-decoration: none; color: #fff;
+  }
+  .cr-share-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .cr-share-btn.whatsapp { background: #25D366; }
+  .cr-share-btn.twitter { background: #1DA1F2; }
+  .cr-share-btn.telegram { background: #0088cc; }
+
   /* ── CTA wrapper ── */
   .cr-cta-area {
     display: flex;
@@ -629,6 +657,7 @@ export default function WaitlistPage() {
   const [copied, setCopied]         = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [confetti, setConfetti]     = useState([]);
+  const [tiers, setTiers]           = useState([]);
   const inputRef = useRef();
 
   const refCode = new URLSearchParams(window.location.search).get('ref') || '';
@@ -653,6 +682,30 @@ export default function WaitlistPage() {
       .then(d => setTotalCount(d.count))
       .catch(() => setTotalCount(0));
   }, []);
+
+  // Fetch tier definitions
+  useEffect(() => {
+    fetch(`${API}/api/waitlist/tiers`)
+      .then(r => r.json())
+      .then(d => setTiers(d.tiers || []))
+      .catch(() => setTiers([
+        { name: 'Priority Access', required_referrals: 3, badge_emoji: '⚡' },
+        { name: 'Early Beta', required_referrals: 5, badge_emoji: '🚀' },
+        { name: 'Founding Member', required_referrals: 10, badge_emoji: '⭐' },
+      ]));
+  }, []);
+
+  // Poll referral count every 30s when signed up
+  useEffect(() => {
+    if (status !== 'done' || !referralCode) return;
+    const poll = setInterval(() => {
+      fetch(`${API}/api/waitlist/referrals/${referralCode}`)
+        .then(r => r.json())
+        .then(d => { if (d.referralCount !== undefined) setReferrals(d.referralCount); })
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(poll);
+  }, [status, referralCode]);
 
   const animCount = useCountUp(totalCount);
 
@@ -890,16 +943,37 @@ export default function WaitlistPage() {
                       <p className="cr-success-sub">We'll notify you when the pilot launches.</p>
                       <div className="cr-ref-label">
                         <span>REFERRAL PROGRESS</span>
-                        <span className="cr-ref-num">{referrals} / 10</span>
+                        <span className="cr-ref-num">{referrals} / {tiers.length > 0 ? tiers[tiers.length - 1].required_referrals : 10}</span>
                       </div>
                       <div className="cr-progress-bar">
-                        <div className="cr-progress-fill" style={{ width: `${Math.min((referrals / 10) * 100, 100)}%` }} />
+                        <div className="cr-progress-fill" style={{ width: `${Math.min((referrals / (tiers.length > 0 ? tiers[tiers.length - 1].required_referrals : 10)) * 100, 100)}%` }} />
                       </div>
+                      {tiers.length > 0 && (
+                        <div className="cr-tiers-row">
+                          {tiers.map(t => (
+                            <div key={t.required_referrals} className={`cr-tier-marker${referrals >= t.required_referrals ? ' unlocked' : ''}`}>
+                              <span className="tier-emoji">{t.badge_emoji}</span>
+                              <span className="tier-name">{t.required_referrals}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <div className="cr-share-row">
                         <span className="cr-share-url">{shareUrl}</span>
                         <button className={`cr-copy-btn${copied ? ' copied' : ''}`} onClick={copyLink}>
                           {copied ? '✓ Copied' : 'Copy'}
                         </button>
+                      </div>
+                      <div className="cr-share-btns">
+                        <a className="cr-share-btn whatsapp" href={`https://wa.me/?text=${encodeURIComponent(`Join CyberRange TZ — Tanzania's first browser-based cybersecurity lab! ${shareUrl}`)}`} target="_blank" rel="noopener noreferrer">
+                          WhatsApp
+                        </a>
+                        <a className="cr-share-btn twitter" href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just joined @CyberRangeTZ — Tanzania's first browser-based cybersecurity lab! Join the waitlist:`)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer">
+                          Twitter
+                        </a>
+                        <a className="cr-share-btn telegram" href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`Join CyberRange TZ — Tanzania's first browser-based cybersecurity lab!`)}`} target="_blank" rel="noopener noreferrer">
+                          Telegram
+                        </a>
                       </div>
                     </div>
                   )}

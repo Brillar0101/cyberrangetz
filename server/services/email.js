@@ -6,7 +6,7 @@ const FROM_NAME     = 'CyberRange TZ';
 const BASE_URL      = process.env.CLIENT_URL || 'https://cyberrangetz.com';
 
 function htmlEmail({ firstName, email, referralCode, position }) {
-  const refLink = `${BASE_URL}/waitlist?ref=${referralCode}`;
+  const refLink = `${BASE_URL}/?ref=${referralCode}`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -130,4 +130,107 @@ async function sendWaitlistConfirmation({ firstName, email, referralCode, positi
   });
 }
 
-module.exports = { sendWaitlistConfirmation };
+/**
+ * Send a tier-unlocked notification email via Brevo.
+ * @param {{ firstName: string, email: string, tierName: string, rewardDescription: string, referralCount: number }} opts
+ */
+async function sendTierUnlockedEmail({ firstName, email, tierName, rewardDescription, referralCount }) {
+  if (!BREVO_API_KEY) {
+    console.warn('[email] BREVO_API_KEY not set — skipping tier email');
+    return;
+  }
+
+  const refLink = `${BASE_URL}/?ref=`;
+  const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>You unlocked ${tierName}!</title>
+</head>
+<body style="margin:0;padding:0;background:#050505;font-family:'Roboto',Arial,sans-serif;color:#fff;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#050505;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#0d0d0d;border:1px solid rgba(255,255,255,0.09);border-radius:16px;overflow:hidden;max-width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="padding:36px 40px 28px;border-bottom:1px solid rgba(255,255,255,0.09);">
+            <span style="font-size:22px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;">
+              <span style="color:#1EB53A;">Cyber</span>Range TZ
+            </span>
+          </td>
+        </tr>
+
+        <!-- Hero -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.45);">Tier unlocked</p>
+            <h1 style="margin:0 0 20px;font-size:28px;font-weight:700;line-height:1.2;">
+              ${firstName}, you just hit <span style="color:#FCD116;">${referralCount} referrals</span>!
+            </h1>
+            <div style="background:rgba(252,209,22,0.08);border:1px solid rgba(252,209,22,0.25);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+              <p style="margin:0 0 4px;font-size:18px;font-weight:700;color:#FCD116;">${tierName}</p>
+              <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.7);">${rewardDescription}</p>
+            </div>
+            <p style="margin:0;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.7);">
+              Keep sharing your referral link to unlock even more rewards.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Divider -->
+        <tr><td style="padding:0 40px;"><div style="height:1px;background:rgba(255,255,255,0.09);"></div></td></tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:28px 40px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;">
+            &copy; ${new Date().getFullYear()} CyberRange TZ. Dar es Salaam, Tanzania.
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  const payload = JSON.stringify({
+    sender:  { name: FROM_NAME, email: FROM_EMAIL },
+    to:      [{ email }],
+    subject: `🎉 You unlocked "${tierName}" — ${referralCount} referrals!`,
+    htmlContent,
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      {
+        hostname: 'api.brevo.com',
+        path:     '/v3/smtp/email',
+        method:   'POST',
+        headers:  {
+          'Content-Type':  'application/json',
+          'api-key':       BREVO_API_KEY,
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      },
+      (res) => {
+        let body = '';
+        res.on('data', chunk => (body += chunk));
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve();
+          } else {
+            console.error('[email] Brevo tier email error', res.statusCode, body);
+            reject(new Error(`Brevo ${res.statusCode}`));
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
+module.exports = { sendWaitlistConfirmation, sendTierUnlockedEmail };
