@@ -303,7 +303,7 @@ const CSS = `
     padding: 5px 5px 5px 22px;
     backdrop-filter: blur(16px);
   }
-  .cr-step-input-row:focus-within { border-color: rgba(30,181,58,0.55); }
+  .cr-step-input-row:focus-within { border-color: rgba(255,255,255,0.30); }
   .cr-email-input {
     flex: 1; background: none; border: none; outline: none;
     color: #fff; font-family: var(--font-ui); font-size: var(--fs-email); min-width: 0;
