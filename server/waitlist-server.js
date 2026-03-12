@@ -12,8 +12,19 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(helmet());
+
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:3000',
+  'https://www.cyberrangetz.com',
+  'https://cyberrangetz.com',
+  'https://cyberrange-frontend.onrender.com',
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 app.use(express.json());
