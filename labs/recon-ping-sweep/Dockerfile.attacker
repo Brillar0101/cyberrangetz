@@ -1,0 +1,17 @@
+FROM kalilinux/kali-rolling
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    iputils-ping \
+    fping \
+    curl \
+    net-tools \
+    iproute2 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY setup-attacker.sh /opt/setup.sh
+COPY banner.sh /etc/profile.d/cyberrange-banner.sh
+RUN chmod +x /opt/setup.sh /etc/profile.d/cyberrange-banner.sh
+
+ENTRYPOINT ["/opt/setup.sh"]

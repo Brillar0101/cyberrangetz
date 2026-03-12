@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: cyberrange
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@postgres:5432/cyberrange
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET in .env}
+      PORT: 4000
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
+      ADMIN_SECRET: ${ADMIN_SECRET:?Set ADMIN_SECRET in .env}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      FROM_EMAIL: ${FROM_EMAIL:-noreply@cyberrangetz.com}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./labs:/labs
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  frontend:
+    build: ./client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  # Pre-built lab images (built once, spawned per session)
+  lab-red:
+    build: ./labs/red
+    image: cyberrange-lab-red
+    profiles: ["build-only"]
+
+  lab-blue:
+    build: ./labs/blue
+    image: cyberrange-lab-blue
+    profiles: ["build-only"]
+
+  lab-linux:
+    build: ./labs/linux-fundamentals
+    image: cyberrange-lab-linux
+    profiles: ["build-only"]
+
+  # Network Reconnaissance lab images
+  recon-detect-icmp:
+    build: ./labs/recon-detect-icmp
+    image: cyberrange-recon-detect-icmp
+    profiles: ["build-only"]
+
+  recon-attacker:
+    build:
+      context: ./labs/recon-ping-sweep
+      dockerfile: Dockerfile.attacker
+    image: cyberrange-recon-attacker
+    profiles: ["build-only"]
+
+  recon-target-alive:
+    build:
+      context: ./labs/recon-ping-sweep
+      dockerfile: Dockerfile.target-alive
+    image: cyberrange-recon-target-alive
+    profiles: ["build-only"]
+
+  recon-target-filtered:
+    build:
+      context: ./labs/recon-ping-sweep
+      dockerfile: Dockerfile.target-filtered
+    image: cyberrange-recon-target-filtered
+    profiles: ["build-only"]
+
+volumes:
+  pgdata:

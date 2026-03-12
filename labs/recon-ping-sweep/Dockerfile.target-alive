@@ -1,0 +1,16 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    nginx \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Flag file served via HTTP
+COPY flag.txt /var/www/html/flag.txt
+
+# Simple index page
+RUN echo '<html><body><h1>Target Alpha — Web Server</h1><p>Services: HTTP</p></body></html>' > /var/www/html/index.html
+
+CMD ["nginx", "-g", "daemon off;"]

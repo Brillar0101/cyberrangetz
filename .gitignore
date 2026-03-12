@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+
+# Office temp files
+~$*
+
+# Large media files
+*.mov
+*.mp4
+
+# PowerPoint files
+*.pptx
+
+# Coverage reports
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db

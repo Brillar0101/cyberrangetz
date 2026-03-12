@@ -1,0 +1,18 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    nginx \
+    iptables \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Status page proves the host is alive (even though ICMP is blocked)
+RUN echo 'alive' > /var/www/html/status.txt
+RUN echo '<html><body><h1>Target Bravo — Filtered Host</h1><p>ICMP is blocked by firewall.</p></body></html>' > /var/www/html/index.html
+
+COPY setup-filtered.sh /opt/setup.sh
+RUN chmod +x /opt/setup.sh
+
+ENTRYPOINT ["/opt/setup.sh"]

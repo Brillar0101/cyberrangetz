@@ -1,0 +1,262 @@
+{
+  "module": "Linux Fundamentals",
+  "labs": [
+    {
+      "id": "linux-nav",
+      "title": "Navigate & Manage Files",
+      "type": "learn",
+      "docker_image": "cyberrange-lab-linux",
+      "flag": "FLAG{linux_navigator_7291}",
+      "steps": [
+        {
+          "id": 1,
+          "title": "Find your location",
+          "explanation": "Every time you open a terminal, you start in a directory. The `pwd` (print working directory) command shows exactly where you are in the filesystem. This is the very first command every Linux user should know — it tells you where you are before you start moving around.",
+          "command": "pwd",
+          "question": "What is your current directory path?",
+          "answer": "/root"
+        },
+        {
+          "id": 2,
+          "title": "Discover hidden files",
+          "explanation": "The `ls` command lists files and directories. By default, it hides files starting with a dot (called 'dotfiles'). Use `ls -a` to see ALL files including hidden ones. Dotfiles usually store configuration settings (like .bashrc) — but attackers sometimes hide things in dotfiles too. Let's check your home directory for anything hidden.",
+          "command": "ls -a",
+          "question": "There's a hidden file that starts with .secret — what is its full name? (include the dot)",
+          "answer": ".secret_mission"
+        },
+        {
+          "id": 3,
+          "title": "Read files and follow clues",
+          "explanation": "The `cat` command displays the contents of a file. It's short for 'concatenate' — it can also combine multiple files. For larger files, use `less` which lets you scroll page by page (press q to quit). Let's read that secret file you found.",
+          "command": "cat .secret_mission",
+          "question": "What directory path does the secret mission tell you to investigate?",
+          "answer": "/opt/challenges"
+        },
+        {
+          "id": 4,
+          "title": "Navigate and create directories",
+          "explanation": "Use `cd` (change directory) to move around the filesystem. `mkdir` creates new directories — add `-p` to create nested parent directories in one go. `touch` creates empty files. Let's navigate to the challenges directory, explore it, and create a workspace.",
+          "command": "cd /opt/challenges && ls",
+          "question": "How many items are listed in /opt/challenges?",
+          "answer": "3"
+        },
+        {
+          "id": 5,
+          "title": "Copy, move, and organize",
+          "explanation": "The `cp` command copies files (`cp source dest`). The `mv` command moves or renames files. The `rm` command removes files — be careful, there's no recycle bin! Use `rm -r` to remove directories. These are the core file management commands you'll use every day.",
+          "command": "cp /opt/challenges/readme.txt /tmp/backup.txt && cat /tmp/backup.txt",
+          "question": "What single word appears on the first line of readme.txt?",
+          "answer": "Welcome"
+        },
+        {
+          "id": 6,
+          "title": "Find the hidden flag",
+          "explanation": "The `find` command searches for files by name, type, size, and more. Use `find /path -name \"pattern\"` to locate files. Wildcards like * match any characters. The `2>/dev/null` part hides permission-denied errors. Combine `find` with `cat` to read what you discover.",
+          "command": "find /opt -name '*.flag' 2>/dev/null",
+          "question": "Read the flag file you found. What is the flag? (format: FLAG{...})",
+          "answer": "FLAG{linux_navigator_7291}"
+        }
+      ]
+    },
+    {
+      "id": "linux-text",
+      "title": "Text Processing & Search",
+      "type": "learn",
+      "docker_image": "cyberrange-lab-linux",
+      "flag": "FLAG{text_master_5538}",
+      "prerequisite": "linux-nav",
+      "steps": [
+        {
+          "id": 1,
+          "title": "Redirect output to files",
+          "explanation": "In Linux, `>` redirects command output to a file (creates or overwrites it), and `>>` appends to an existing file without erasing it. The `echo` command prints text. Combined with redirection, you can create and build files directly from the command line — no text editor needed.",
+          "command": "echo 'Security Log Entry 1' > /tmp/mylog.txt && echo 'Alert: unauthorized access' >> /tmp/mylog.txt && cat /tmp/mylog.txt",
+          "question": "How many lines are in /tmp/mylog.txt? (use: wc -l < /tmp/mylog.txt)",
+          "answer": "2"
+        },
+        {
+          "id": 2,
+          "title": "View parts of large files",
+          "explanation": "Large files can be overwhelming. `head` shows the first lines (default 10), `tail` shows the last lines. Use `-n` to specify how many lines. `tail -f` follows a file in real-time — essential for monitoring live logs. Let's examine a pre-built access log.",
+          "command": "head -n 5 /var/log/lab-access.log",
+          "question": "What username appears in the very first line of the log?",
+          "answer": "admin"
+        },
+        {
+          "id": 3,
+          "title": "Search inside files with grep",
+          "explanation": "`grep` (Global Regular Expression Print) is one of the most powerful Linux commands. It searches for text patterns inside files. Use `-i` for case-insensitive search, `-n` to show line numbers, `-c` to count matches, and `-r` to search recursively through all files in a directory.",
+          "command": "grep 'FAILED' /var/log/lab-access.log",
+          "question": "How many lines contain the word FAILED? (use: grep -c 'FAILED' /var/log/lab-access.log)",
+          "answer": "4"
+        },
+        {
+          "id": 4,
+          "title": "Chain commands with pipes",
+          "explanation": "The pipe `|` sends the output of one command as input to the next. This is one of Linux's most powerful features — chaining simple tools to perform complex analysis. `sort` orders lines alphabetically, `uniq` removes consecutive duplicates, `cut` extracts specific fields, and `wc -l` counts lines.",
+          "command": "cat /var/log/lab-access.log | grep 'FAILED' | cut -d' ' -f4 | sort | uniq",
+          "question": "How many unique IP addresses had FAILED login attempts?",
+          "answer": "2"
+        },
+        {
+          "id": 5,
+          "title": "Search recursively for the flag",
+          "explanation": "Use `grep -r` to recursively search through all files in a directory. This is incredibly useful when you know WHAT you're looking for but not WHERE it is. Combine it with `--include` to filter by file type. The flag is hidden somewhere in /opt/challenges/logs/ inside one of many files.",
+          "command": "grep -r 'FLAG{' /opt/challenges/logs/",
+          "question": "What is the flag? (format: FLAG{...})",
+          "answer": "FLAG{text_master_5538}"
+        }
+      ]
+    },
+    {
+      "id": "linux-perms",
+      "title": "Permissions & Ownership",
+      "type": "learn",
+      "docker_image": "cyberrange-lab-linux",
+      "flag": "FLAG{permission_granted_3364}",
+      "prerequisite": "linux-text",
+      "steps": [
+        {
+          "id": 1,
+          "title": "Identify yourself",
+          "explanation": "Linux is a multi-user system. `whoami` shows your current username. `id` shows your user ID (uid), group ID (gid), and all groups you belong to. Group membership determines what files and resources you can access. Knowing who you are is the first step in understanding permissions.",
+          "command": "whoami && id",
+          "question": "What is your username?",
+          "answer": "root"
+        },
+        {
+          "id": 2,
+          "title": "Read file permissions",
+          "explanation": "Run `ls -la` to see file permissions displayed as 10 characters like `-rwxr-xr--`. The first character is the type (- for file, d for directory). Then three groups of three: owner (u), group (g), others (o). r=read(4), w=write(2), x=execute(1). A dash means that permission is denied.",
+          "command": "ls -la /opt/challenges/permissions/",
+          "question": "What are the permission characters of the file 'locked.txt'? (the 10-character string, e.g. -rw-r--r--)",
+          "answer": "-r--------"
+        },
+        {
+          "id": 3,
+          "title": "Change permissions with chmod",
+          "explanation": "`chmod` changes file permissions. In symbolic mode: `chmod u+rwx file` adds all permissions for the owner. In octal mode: `chmod 644 file` sets rw-r--r--. Common values: 644 (read-write owner, read-only others), 755 (executable), 600 (owner-only private). Let's unlock a restricted file.",
+          "command": "chmod 644 /opt/challenges/permissions/secret.txt && cat /opt/challenges/permissions/secret.txt",
+          "question": "What is the secret message inside the file?",
+          "answer": "permissions_unlocked"
+        },
+        {
+          "id": 4,
+          "title": "Understand file ownership",
+          "explanation": "Every file has an owner user and an owner group. `chown user:group file` changes both at once. Only root can change ownership. `chgrp group file` changes just the group. Understanding ownership is critical — misconfigured ownership is a common security vulnerability.",
+          "command": "ls -la /opt/challenges/permissions/admin-file.txt",
+          "question": "Who is the current owner of admin-file.txt? (the username shown in ls -la)",
+          "answer": "nobody"
+        },
+        {
+          "id": 5,
+          "title": "Unlock the flag with correct permissions",
+          "explanation": "The flag file exists but currently has no permissions set (----------), meaning nobody can read it. You need to use `chmod` to grant yourself read permission, then read the file. This demonstrates how misconfigured permissions can either protect or expose sensitive data.",
+          "command": "chmod 400 /opt/challenges/permissions/flag.txt && cat /opt/challenges/permissions/flag.txt",
+          "question": "What is the flag? (format: FLAG{...})",
+          "answer": "FLAG{permission_granted_3364}"
+        }
+      ]
+    },
+    {
+      "id": "linux-system",
+      "title": "System & Process Management",
+      "type": "learn",
+      "docker_image": "cyberrange-lab-linux",
+      "flag": "FLAG{system_admin_8817}",
+      "prerequisite": "linux-perms",
+      "steps": [
+        {
+          "id": 1,
+          "title": "Know your system",
+          "explanation": "`hostname` shows the machine name. `uname -a` displays full system info: kernel name, hostname, kernel version, and CPU architecture. These are the first commands to run when you connect to an unfamiliar system — they tell you exactly what you're working with.",
+          "command": "hostname",
+          "question": "What is the hostname of this machine?",
+          "answer": "cyberrange-linux"
+        },
+        {
+          "id": 2,
+          "title": "Check system resources",
+          "explanation": "`free -h` shows RAM usage in human-readable format (MB/GB). `df -h` shows disk space on all mounted filesystems. Monitoring resources helps detect anomalies — a suddenly full disk might indicate a log-flooding attack, and unusual memory usage could mean a crypto-miner is running.",
+          "command": "free -h && echo '---' && df -h /",
+          "question": "Is swap memory available on this system? (yes/no — check the Swap line in free output)",
+          "answer": "no"
+        },
+        {
+          "id": 3,
+          "title": "Find suspicious processes",
+          "explanation": "`ps aux` lists ALL running processes with their PID, user, CPU/memory usage, and command. A suspicious process running as an unexpected user could be a backdoor. In security, checking running processes is a core part of incident response. Look carefully at the output.",
+          "command": "ps aux",
+          "question": "There's a suspicious process called 'suspicious_process' — what user is running it?",
+          "answer": "nobody"
+        },
+        {
+          "id": 4,
+          "title": "Kill a suspicious process",
+          "explanation": "`kill PID` sends a TERM signal (polite request to stop). `kill -9 PID` sends KILL (forced stop, cannot be ignored). You can find a PID with `ps aux | grep name` or use `pgrep -f name`. Killing malicious processes is a critical incident response skill — stop the threat before it spreads.",
+          "command": "pgrep -f suspicious_process",
+          "question": "Kill the suspicious process using: kill $(pgrep -f suspicious_process) — then verify with: ps aux | grep suspicious_process | grep -v grep — is it still running? (yes/no)",
+          "answer": "no"
+        },
+        {
+          "id": 5,
+          "title": "Find the flag hidden in a process",
+          "explanation": "Attackers sometimes hide data in process arguments, environment variables, or temporary files. Use `ps aux` combined with `grep` to search through running process details. There's one more secret process running with a flag embedded in its command line.",
+          "command": "ps aux | grep FLAG",
+          "question": "What is the flag? (format: FLAG{...})",
+          "answer": "FLAG{system_admin_8817}"
+        }
+      ]
+    },
+    {
+      "id": "linux-bash",
+      "title": "Bash Scripting Basics",
+      "type": "learn",
+      "docker_image": "cyberrange-lab-linux",
+      "flag": "FLAG{bash_scripter_6643}",
+      "prerequisite": "linux-system",
+      "steps": [
+        {
+          "id": 1,
+          "title": "Create your first script",
+          "explanation": "A Bash script is a text file containing commands that run in sequence. The first line must be `#!/bin/bash` (called a 'shebang') — it tells Linux which interpreter to use. Create a script with `nano` or `echo`, then make it executable with `chmod +x`. Let's create a simple script.",
+          "command": "echo '#!/bin/bash\necho \"Hello from CyberRange TZ!\"\necho \"Today is: $(date)\"' > /tmp/myscript.sh && chmod +x /tmp/myscript.sh && cat /tmp/myscript.sh",
+          "question": "Run your script with: /tmp/myscript.sh — What are the first 5 characters of the output?",
+          "answer": "Hello"
+        },
+        {
+          "id": 2,
+          "title": "Variables and arguments",
+          "explanation": "Scripts can accept arguments: `$1` is the first argument, `$2` the second, etc. You can also create variables with `name=value` (no spaces around =). Use `$name` to read a variable. Environment variables like `$HOME`, `$USER`, and `$PATH` are always available.",
+          "command": "echo '#!/bin/bash\necho \"Hello, $1!\"\necho \"Your home is: $HOME\"\necho \"You are: $USER\"' > /tmp/greet.sh && chmod +x /tmp/greet.sh && /tmp/greet.sh Student",
+          "question": "What username does the script print on the 'You are:' line?",
+          "answer": "root"
+        },
+        {
+          "id": 3,
+          "title": "Conditionals with if/else",
+          "explanation": "Use `if [ condition ]; then ... else ... fi` to make decisions. Common tests: `-f file` (file exists), `-d dir` (directory exists), `\"$var\" == \"value\"` (string comparison), `-z \"$var\"` (variable is empty). Conditionals let your scripts handle different situations automatically.",
+          "command": "echo '#!/bin/bash\nif [ -f /etc/passwd ]; then\n  echo \"passwd file exists\"\n  echo \"Users: $(wc -l < /etc/passwd)\"\nelse\n  echo \"passwd file missing!\"\nfi' > /tmp/check.sh && chmod +x /tmp/check.sh && /tmp/check.sh",
+          "question": "Does the passwd file exist according to the script? (yes/no)",
+          "answer": "yes"
+        },
+        {
+          "id": 4,
+          "title": "Loops and automation",
+          "explanation": "`for` loops repeat commands for each item in a list. Syntax: `for var in list; do ... done`. You can loop over files, numbers (`seq 1 10`), or command output. This is how you automate repetitive tasks — instead of running a command 100 times manually, write a loop.",
+          "command": "echo '#!/bin/bash\nfor file in /opt/challenges/logs/*.log; do\n  count=$(wc -l < \"$file\")\n  echo \"$file: $count lines\"\ndone' > /tmp/counter.sh && chmod +x /tmp/counter.sh && /tmp/counter.sh",
+          "question": "How many .log files did the script process? (count the output lines)",
+          "answer": "7"
+        },
+        {
+          "id": 5,
+          "title": "Build a script to find the flag",
+          "explanation": "Now combine everything: variables, conditionals, loops, and pipes. A pre-built script at /opt/challenges/scripts/decode.sh contains the flag — but it's encoded. You need to make it executable, run it, and read the output. This is how real security scripts work: automate tasks that would take too long manually.",
+          "command": "chmod +x /opt/challenges/scripts/decode.sh && /opt/challenges/scripts/decode.sh",
+          "question": "What is the flag? (format: FLAG{...})",
+          "answer": "FLAG{bash_scripter_6643}"
+        }
+      ]
+    }
+  ]
+}

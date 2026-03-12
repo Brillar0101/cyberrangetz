@@ -1,0 +1,144 @@
+{
+  "module": "Post-Exploitation",
+  "labs": [
+    {
+      "id": "post-suid-privesc",
+      "title": "Local Privilege Escalation via SUID",
+      "type": "red",
+      "tools": "find, bash, GTFOBins",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{suid_privesc_1455}",
+      "steps": []
+    },
+    {
+      "id": "post-fix-suid",
+      "title": "Find & Remove Dangerous SUID Binaries",
+      "type": "blue",
+      "tools": "find, chmod, auditd",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{suid_cleaned_2566}",
+      "prerequisite": "post-suid-privesc",
+      "steps": []
+    },
+    {
+      "id": "post-dump-hashes",
+      "title": "Dumping Password Hashes",
+      "type": "red",
+      "tools": "cat /etc/shadow, unshadow",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{hashes_dumped_3677}",
+      "prerequisite": "post-fix-suid",
+      "steps": []
+    },
+    {
+      "id": "post-protect-shadow",
+      "title": "Protect /etc/shadow & Audit File Access",
+      "type": "blue",
+      "tools": "chmod, auditd, pam",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{shadow_protected_4788}",
+      "prerequisite": "post-dump-hashes",
+      "steps": []
+    },
+    {
+      "id": "post-reverse-shell",
+      "title": "Establishing a Reverse Shell",
+      "type": "red",
+      "tools": "bash, nc, python3",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{reverse_shell_5899}",
+      "prerequisite": "post-protect-shadow",
+      "steps": []
+    },
+    {
+      "id": "post-detect-revshell",
+      "title": "Detect Reverse Shell Connections",
+      "type": "blue",
+      "tools": "netstat, ss, auditd",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{revshell_detected_6900}",
+      "prerequisite": "post-reverse-shell",
+      "steps": []
+    },
+    {
+      "id": "post-lateral-ssh",
+      "title": "Lateral Movement via SSH Keys",
+      "type": "red",
+      "tools": "ssh-keygen, ssh, cat",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{lateral_ssh_7011}",
+      "prerequisite": "post-detect-revshell",
+      "steps": []
+    },
+    {
+      "id": "post-audit-ssh-keys",
+      "title": "Audit & Rotate SSH Keys",
+      "type": "blue",
+      "tools": "authorized_keys, ssh-keygen",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{ssh_keys_rotated_8122}",
+      "prerequisite": "post-lateral-ssh",
+      "steps": []
+    },
+    {
+      "id": "post-dns-exfil",
+      "title": "Data Exfiltration via DNS",
+      "type": "red",
+      "tools": "dig, nslookup, bash",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{dns_exfil_9233}",
+      "prerequisite": "post-audit-ssh-keys",
+      "steps": []
+    },
+    {
+      "id": "post-detect-dns-exfil",
+      "title": "Detect DNS Exfiltration in Logs",
+      "type": "blue",
+      "tools": "tcpdump, grep, dnstop",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{dns_exfil_detected_1344}",
+      "prerequisite": "post-dns-exfil",
+      "steps": []
+    },
+    {
+      "id": "post-cron-backdoor",
+      "title": "Persistence via Cron Job Backdoor",
+      "type": "red",
+      "tools": "crontab, bash, nc",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{cron_backdoor_2455}",
+      "prerequisite": "post-detect-dns-exfil",
+      "steps": []
+    },
+    {
+      "id": "post-detect-cron",
+      "title": "Detect & Remove Malicious Cron Jobs",
+      "type": "blue",
+      "tools": "crontab -l, auditd, grep",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{cron_cleaned_3566}",
+      "prerequisite": "post-cron-backdoor",
+      "steps": []
+    },
+    {
+      "id": "post-full-attack",
+      "title": "Full Attack Chain — Recon to Root (Advanced)",
+      "type": "red",
+      "tools": "nmap, hydra, metasploit, bash",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{full_chain_4677}",
+      "prerequisite": "post-detect-cron",
+      "steps": []
+    },
+    {
+      "id": "post-incident-response",
+      "title": "Incident Response — Investigate a Compromised Machine",
+      "type": "blue",
+      "tools": "ps, netstat, auditd, last",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{incident_resolved_5788}",
+      "prerequisite": "post-full-attack",
+      "steps": []
+    }
+  ]
+}

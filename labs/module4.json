@@ -1,0 +1,144 @@
+{
+  "module": "Exploitation",
+  "labs": [
+    {
+      "id": "exploit-ftp",
+      "title": "Exploit a Vulnerable FTP Service",
+      "type": "red",
+      "tools": "ftp, metasploit",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{ftp_exploited_1351}",
+      "steps": []
+    },
+    {
+      "id": "exploit-patch-ftp",
+      "title": "Patch & Monitor FTP Service",
+      "type": "blue",
+      "tools": "apt, auditd, ufw",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{ftp_patched_2462}",
+      "prerequisite": "exploit-ftp",
+      "steps": []
+    },
+    {
+      "id": "exploit-ssh-brute",
+      "title": "Brute Force SSH Login",
+      "type": "red",
+      "tools": "hydra, nmap",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{ssh_bruteforce_3573}",
+      "prerequisite": "exploit-patch-ftp",
+      "steps": []
+    },
+    {
+      "id": "exploit-block-ssh-brute",
+      "title": "Block SSH Brute Force with fail2ban",
+      "type": "blue",
+      "tools": "fail2ban, sshd_config",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{ssh_protected_4684}",
+      "prerequisite": "exploit-ssh-brute",
+      "steps": []
+    },
+    {
+      "id": "exploit-sqli",
+      "title": "SQL Injection on a Login Form",
+      "type": "red",
+      "tools": "sqlmap, curl",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{sqli_success_5795}",
+      "prerequisite": "exploit-block-ssh-brute",
+      "steps": []
+    },
+    {
+      "id": "exploit-detect-sqli",
+      "title": "Detect & Log SQL Injection Attempts",
+      "type": "blue",
+      "tools": "nginx logs, grep, modsecurity",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{sqli_detected_6806}",
+      "prerequisite": "exploit-sqli",
+      "steps": []
+    },
+    {
+      "id": "exploit-cmdi",
+      "title": "Command Injection via Web Form",
+      "type": "red",
+      "tools": "curl, burpsuite",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{cmdi_exploited_7917}",
+      "prerequisite": "exploit-detect-sqli",
+      "steps": []
+    },
+    {
+      "id": "exploit-patch-cmdi",
+      "title": "Sanitize Inputs & Patch Command Injection",
+      "type": "blue",
+      "tools": "bash, php config",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{cmdi_patched_8028}",
+      "prerequisite": "exploit-cmdi",
+      "steps": []
+    },
+    {
+      "id": "exploit-sudo-misconfig",
+      "title": "Exploit a Misconfigured Sudo Rule",
+      "type": "red",
+      "tools": "sudo -l, bash",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{sudo_exploited_9139}",
+      "prerequisite": "exploit-patch-cmdi",
+      "steps": []
+    },
+    {
+      "id": "exploit-fix-sudo",
+      "title": "Audit & Fix Sudo Misconfigurations",
+      "type": "blue",
+      "tools": "visudo, auditd",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{sudo_fixed_1240}",
+      "prerequisite": "exploit-sudo-misconfig",
+      "steps": []
+    },
+    {
+      "id": "exploit-password-crack",
+      "title": "Password Cracking with Hashcat",
+      "type": "red",
+      "tools": "hashcat, john",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{hash_cracked_2351}",
+      "prerequisite": "exploit-fix-sudo",
+      "steps": []
+    },
+    {
+      "id": "exploit-password-policy",
+      "title": "Enforce Strong Password Policies",
+      "type": "blue",
+      "tools": "pam_pwquality, passwd",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{password_enforced_3462}",
+      "prerequisite": "exploit-password-crack",
+      "steps": []
+    },
+    {
+      "id": "exploit-cve",
+      "title": "Exploit a CVE on an Unpatched Service (Advanced)",
+      "type": "red",
+      "tools": "metasploit, searchsploit",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{cve_exploited_4573}",
+      "prerequisite": "exploit-password-policy",
+      "steps": []
+    },
+    {
+      "id": "exploit-patch-mgmt",
+      "title": "Patch Management & Vulnerability Scanning",
+      "type": "blue",
+      "tools": "apt, openvas, lynis",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{patch_managed_5684}",
+      "prerequisite": "exploit-cve",
+      "steps": []
+    }
+  ]
+}

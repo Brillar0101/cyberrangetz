@@ -1,0 +1,230 @@
+{
+  "module": "Network Reconnaissance",
+  "labs": [
+    {
+      "id": "recon-ping-sweep",
+      "title": "Ping Sweep — Find Live Hosts",
+      "type": "red",
+      "tools": "ping, fping",
+      "difficulty": "Beginner → Advanced",
+      "docker_image": "cyberrange-recon-attacker",
+      "flag": "FLAG{ping_sweep_1142}",
+      "environment": {
+        "network": {
+          "subnet": "10.0.0.0/24",
+          "gateway": "10.0.0.1"
+        },
+        "containers": [
+          {
+            "name": "attacker",
+            "image": "cyberrange-recon-attacker",
+            "ip": "10.0.0.10",
+            "role": "terminal",
+            "cap_add": ["NET_RAW", "NET_ADMIN"]
+          },
+          {
+            "name": "target-alive",
+            "image": "cyberrange-recon-target-alive",
+            "ip": "10.0.0.2"
+          },
+          {
+            "name": "target-filtered",
+            "image": "cyberrange-recon-target-filtered",
+            "ip": "10.0.0.3",
+            "cap_add": ["NET_ADMIN"]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": 1,
+          "title": "Ping a single host",
+          "explanation": "Before scanning an entire network, a penetration tester starts by confirming that a single known target is reachable. The `ping` command sends ICMP Echo Request packets to a host and waits for ICMP Echo Reply packets. Each reply includes a TTL (Time-To-Live) value — this indicates how many network hops the packet can survive. Different operating systems set different default TTL values: Linux typically uses 64, Windows uses 128. This means TTL can hint at what OS the target is running — a valuable piece of intelligence gathered from a single ping.",
+          "command": "ping -c 4 10.0.0.2",
+          "question": "What is the TTL value in the ping replies from 10.0.0.2?",
+          "answer": "64"
+        },
+        {
+          "id": 2,
+          "title": "Sweep a subnet with fping",
+          "explanation": "Pinging one host at a time is too slow for real reconnaissance. `fping` is designed for sweeping — it sends pings to many hosts in parallel and reports which are alive and which are unreachable. The `-a` flag shows only alive hosts, `-g` generates a target list from a range, and `2>/dev/null` hides error messages for clean output. In a real penetration test, this is often the very first command you run against a target network — it tells you what's out there before you scan any ports.",
+          "command": "fping -a -g 10.0.0.0/24 2>/dev/null",
+          "question": "Did the host at 10.0.0.3 appear in the alive list? (yes/no)",
+          "answer": "no"
+        },
+        {
+          "id": 3,
+          "title": "Discover a filtered host",
+          "explanation": "Not every host that fails to respond to ping is actually offline. Many organizations configure firewalls to drop ICMP packets — this is called ICMP filtering. The host is fully operational and running services, but it's invisible to ping sweeps. This is a critical lesson: relying only on ping gives you an incomplete picture. A host at 10.0.0.3 exists on this network but didn't appear in your sweep. It has a running web server — let's prove it's alive even though it blocks ping.",
+          "command": "ping -c 2 10.0.0.3",
+          "question": "The ping failed, but the host is alive. Run: curl -s http://10.0.0.3/status.txt — What word does it return?",
+          "answer": "alive"
+        },
+        {
+          "id": 4,
+          "title": "Control sweep timing for stealth",
+          "explanation": "In real penetration testing, speed vs stealth is a constant tradeoff. A fast sweep with default timing (-i 10, meaning 10ms between pings) fires hundreds of ICMP packets per second — Intrusion Detection Systems (IDS) spot this immediately as a sweep pattern. A slower sweep with -i 500 (500ms between pings) takes much longer but each ping looks like normal traffic. The -c flag sends multiple pings per host, and the summary shows xmt (transmitted), rcv (received), and %loss — giving you reliable data about each target's status.",
+          "command": "fping -c 3 10.0.0.2 10.0.0.3 10.0.0.4",
+          "question": "What is the packet loss percentage for host 10.0.0.3? (just the number)",
+          "answer": "100"
+        },
+        {
+          "id": 5,
+          "title": "Build a target list for the next phase",
+          "explanation": "Professional penetration testers don't just look at results — they save them. The output of reconnaissance becomes the input for the next phase (port scanning). Using `fping -a` with `tee` writes alive hosts to a file while also displaying them. The `-u` flag does the opposite — it lists unreachable hosts. In a real engagement, you'd save both lists: alive hosts to scan next, and unreachable hosts to investigate with other methods (since they might be filtered, not offline). This is how structured, methodical penetration testing works.",
+          "command": "fping -a -g 10.0.0.2 10.0.0.10 2>/dev/null | tee /tmp/alive-hosts.txt",
+          "question": "How many alive hosts are in your target list? (run: wc -l < /tmp/alive-hosts.txt)",
+          "answer": "2"
+        },
+        {
+          "id": 6,
+          "title": "Retrieve the flag",
+          "explanation": "You've completed your first network reconnaissance sweep. You confirmed one host is alive and responding (10.0.0.2), discovered that another host is alive but filtering ICMP (10.0.0.3), and confirmed one host is truly offline (10.0.0.4). You also built a clean target list for the next phase. Intelligence gathered from 10.0.0.2's web server includes a flag file — retrieve it to complete this lab.",
+          "command": "curl http://10.0.0.2/flag.txt",
+          "question": "What is the flag? (format: FLAG{...})",
+          "answer": "FLAG{ping_sweep_1142}"
+        }
+      ]
+    },
+    {
+      "id": "recon-detect-icmp",
+      "title": "Detect ICMP Sweeps in Logs",
+      "type": "blue",
+      "tools": "tcpdump, grep",
+      "difficulty": "Beginner → Advanced",
+      "docker_image": "cyberrange-recon-detect-icmp",
+      "flag": "FLAG{icmp_detected_2253}",
+      "prerequisite": "recon-ping-sweep",
+      "steps": [
+        {
+          "id": 1,
+          "title": "Read raw network traffic",
+          "explanation": "As a defender, your first skill is reading network captures. The file /var/log/capture.log contains traffic recorded by tcpdump — the same tool that network administrators and security analysts use daily. Each line shows a timestamp, source IP, destination IP, and protocol. Learning to read this raw data is foundational — before you can detect an attack, you need to understand what normal and abnormal traffic looks like.",
+          "command": "head -20 /var/log/capture.log",
+          "question": "What IP address is sending ICMP echo requests in the first few lines of the log?",
+          "answer": "10.0.0.5"
+        },
+        {
+          "id": 2,
+          "title": "Filter for ICMP traffic only",
+          "explanation": "Real capture files contain thousands of lines mixing many protocols (TCP, UDP, ARP, ICMP). To investigate a suspected ping sweep, you need to isolate only ICMP traffic. The `grep` command filters lines matching a pattern. By grepping for 'ICMP echo request' you see only outbound pings — this is exactly what a sweep generates. The volume and pattern of these requests tells you whether it's normal activity or a reconnaissance sweep.",
+          "command": "grep 'ICMP echo request' /var/log/capture.log | head -20",
+          "question": "Look at the output — besides 10.0.0.5, what other IP is sending ICMP echo requests?",
+          "answer": "10.0.0.1"
+        },
+        {
+          "id": 3,
+          "title": "Identify the sweep pattern",
+          "explanation": "Normal ping traffic comes from a single source to a single destination — like 10.0.0.5 pinging 10.0.0.1 a few times. A sweep looks completely different: one source IP sends ICMP requests to MANY different destination IPs in rapid succession. This sequential targeting of an entire subnet is the signature of reconnaissance. Let's count how many echo requests each source IP sent to see who's doing normal pings vs who's sweeping.",
+          "command": "grep 'ICMP echo request' /var/log/capture.log | grep -oP 'IP \\K[0-9.]+' | sort | uniq -c | sort -rn",
+          "question": "How many ICMP echo requests did 10.0.0.5 send? (the number next to its IP)",
+          "answer": "8"
+        },
+        {
+          "id": 4,
+          "title": "Quantify the attacker's sweep",
+          "explanation": "Now that you've identified 10.0.0.1 as the suspicious IP (it sent far more ICMP requests than anyone else), you need to quantify the attack for your incident report. How many hosts did the attacker target? How many total packets did they send? This data is critical — it tells your security team the scope of the reconnaissance and helps determine what the attacker now knows about your network.",
+          "command": "grep 'ICMP echo request' /var/log/capture.log | grep 'IP 10.0.0.1 >' | wc -l",
+          "question": "How many ICMP echo requests did the attacker (10.0.0.1) send in total?",
+          "answer": "1016"
+        },
+        {
+          "id": 5,
+          "title": "Build a sweep detection rule",
+          "explanation": "Security analysts don't manually grep logs all day — they build detection rules. The logic is simple: any single IP that sends ICMP echo requests to more than 5 unique destinations in a short period is likely performing a sweep. This one-liner extracts source IPs from ICMP requests, counts how many unique destinations each one targeted, and flags anything above the threshold. This is the exact logic that IDS tools like Snort automate.",
+          "command": "grep 'ICMP echo request' /var/log/capture.log | awk '{print $3, $5}' | sed 's/ >$//' | sort | awk '{print $1}' | uniq -c | sort -rn | awk '$1 > 5 {print \"ALERT: \" $2 \" sent \" $1 \" ICMP requests — possible sweep\"}'",
+          "question": "Which IP triggered the sweep alert?",
+          "answer": "10.0.0.1"
+        },
+        {
+          "id": 6,
+          "title": "Retrieve the flag",
+          "explanation": "In a real incident, you'd now escalate this finding to your security team with the attacker's IP, the number of targets scanned, and the time window. For this lab, the flag is hidden inside the capture log itself — a detail an attacker might try to slip into noisy traffic. Use grep to find it.",
+          "command": "grep 'FLAG' /var/log/capture.log",
+          "question": "What is the flag? (format: FLAG{...})",
+          "answer": "FLAG{icmp_detected_2253}"
+        }
+      ]
+    },
+    {
+      "id": "recon-port-scan",
+      "title": "Basic Port Scan",
+      "type": "red",
+      "tools": "nmap",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{port_scanner_3364}",
+      "prerequisite": "recon-detect-icmp",
+      "steps": []
+    },
+    {
+      "id": "recon-detect-port-scan",
+      "title": "Detect Port Scanning Activity",
+      "type": "blue",
+      "tools": "snort, syslog",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{scan_detected_4475}",
+      "prerequisite": "recon-port-scan",
+      "steps": []
+    },
+    {
+      "id": "recon-service-version",
+      "title": "Service Version Detection",
+      "type": "red",
+      "tools": "nmap -sV",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{version_detected_5586}",
+      "prerequisite": "recon-detect-port-scan",
+      "steps": []
+    },
+    {
+      "id": "recon-identify-services",
+      "title": "Identify Exposed Service Versions",
+      "type": "blue",
+      "tools": "nmap, grep",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{services_identified_6697}",
+      "prerequisite": "recon-service-version",
+      "steps": []
+    },
+    {
+      "id": "recon-os-fingerprint",
+      "title": "OS Fingerprinting",
+      "type": "red",
+      "tools": "nmap -O",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{os_fingerprint_7708}",
+      "prerequisite": "recon-identify-services",
+      "steps": []
+    },
+    {
+      "id": "recon-harden-banner",
+      "title": "Harden OS Banner Information",
+      "type": "blue",
+      "tools": "sysctl, /etc/os-release",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{banner_hardened_8819}",
+      "prerequisite": "recon-os-fingerprint",
+      "steps": []
+    },
+    {
+      "id": "recon-stealth-syn",
+      "title": "Stealth SYN Scan",
+      "type": "red",
+      "tools": "nmap -sS",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{stealth_scan_9920}",
+      "prerequisite": "recon-harden-banner",
+      "steps": []
+    },
+    {
+      "id": "recon-detect-stealth",
+      "title": "Detect Stealth Scans with IDS",
+      "type": "blue",
+      "tools": "snort, tcpdump",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{stealth_detected_1031}",
+      "prerequisite": "recon-stealth-syn",
+      "steps": []
+    }
+  ]
+}

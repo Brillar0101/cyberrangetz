@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #080C14;
+  color: #E2E8F0;
+}
+
+/* Tanzanian diagonal stripe accent */
+.tz-accent {
+  background: linear-gradient(135deg, #1EB53A, #000000, #00A3DD);
+}
+
+.tz-stripe-bar {
+  height: 3px;
+  background: linear-gradient(90deg, #1EB53A 0%, #FCD116 25%, #000000 50%, #FCD116 75%, #00A3DD 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080C14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1B2332;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2A3548;
+}
+
+/* Glow effects */
+.glow-green {
+  box-shadow: 0 0 30px rgba(30, 181, 58, 0.2), inset 0 1px 0 rgba(30, 181, 58, 0.1);
+}
+.glow-blue {
+  box-shadow: 0 0 30px rgba(0, 163, 221, 0.2), inset 0 1px 0 rgba(0, 163, 221, 0.1);
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, border-color, box-shadow, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Input focus ring */
+input:focus {
+  box-shadow: 0 0 0 2px rgba(30, 181, 58, 0.3);
+}
+
+/* Button hover lift */
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+button {
+  transition: all 150ms ease;
+}

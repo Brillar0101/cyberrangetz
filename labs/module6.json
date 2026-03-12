@@ -1,0 +1,124 @@
+{
+  "module": "Covering Tracks",
+  "labs": [
+    {
+      "id": "tracks-clear-history",
+      "title": "Clear Bash History",
+      "type": "red",
+      "tools": "history -c, unset HISTFILE",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{history_cleared_1559}",
+      "steps": []
+    },
+    {
+      "id": "tracks-detect-history",
+      "title": "Detect History Tampering",
+      "type": "blue",
+      "tools": "auditd, bash_history, .bashrc",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{history_tamper_detected_2660}",
+      "prerequisite": "tracks-clear-history",
+      "steps": []
+    },
+    {
+      "id": "tracks-tamper-logs",
+      "title": "Tamper with System Logs",
+      "type": "red",
+      "tools": "echo, truncate, sed",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{logs_tampered_3771}",
+      "prerequisite": "tracks-detect-history",
+      "steps": []
+    },
+    {
+      "id": "tracks-protect-logs",
+      "title": "Protect Logs with Immutable Flags",
+      "type": "blue",
+      "tools": "chattr, auditd, rsyslog",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{logs_immutable_4882}",
+      "prerequisite": "tracks-tamper-logs",
+      "steps": []
+    },
+    {
+      "id": "tracks-delete-auth",
+      "title": "Delete Auth Logs to Hide Logins",
+      "type": "red",
+      "tools": "rm, truncate /var/log/auth.log",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{auth_deleted_5993}",
+      "prerequisite": "tracks-protect-logs",
+      "steps": []
+    },
+    {
+      "id": "tracks-remote-syslog",
+      "title": "Forward Logs to Remote Syslog Server",
+      "type": "blue",
+      "tools": "rsyslog, syslog-ng",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{remote_syslog_6104}",
+      "prerequisite": "tracks-delete-auth",
+      "steps": []
+    },
+    {
+      "id": "tracks-timestomp",
+      "title": "Timestomping — Modify File Timestamps",
+      "type": "red",
+      "tools": "touch -t, debugfs",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{timestomped_7215}",
+      "prerequisite": "tracks-remote-syslog",
+      "steps": []
+    },
+    {
+      "id": "tracks-detect-timestamps",
+      "title": "Detect Timestamp Anomalies",
+      "type": "blue",
+      "tools": "find, stat, auditd",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{timestamps_anomaly_8326}",
+      "prerequisite": "tracks-timestomp",
+      "steps": []
+    },
+    {
+      "id": "tracks-hide-process",
+      "title": "Hide a Malicious Process",
+      "type": "red",
+      "tools": "ps, kill, /proc manipulation",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{process_hidden_9437}",
+      "prerequisite": "tracks-detect-timestamps",
+      "steps": []
+    },
+    {
+      "id": "tracks-hunt-hidden",
+      "title": "Hunt for Hidden Processes",
+      "type": "blue",
+      "tools": "ps, ls /proc, rkhunter",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{hidden_found_1548}",
+      "prerequisite": "tracks-hide-process",
+      "steps": []
+    },
+    {
+      "id": "tracks-full-cleanup",
+      "title": "Full Cleanup After an Attack (Advanced)",
+      "type": "red",
+      "tools": "history, sed, touch, rm",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{full_cleanup_2659}",
+      "prerequisite": "tracks-hunt-hidden",
+      "steps": []
+    },
+    {
+      "id": "tracks-forensic-investigation",
+      "title": "Forensic Investigation — Reconstruct an Attack (Advanced)",
+      "type": "blue",
+      "tools": "auditd, last, find, grep",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{attack_reconstructed_3760}",
+      "prerequisite": "tracks-full-cleanup",
+      "steps": []
+    }
+  ]
+}

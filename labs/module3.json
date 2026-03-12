@@ -1,0 +1,144 @@
+{
+  "module": "Scanning & Enumeration",
+  "labs": [
+    {
+      "id": "enum-dns",
+      "title": "DNS Enumeration",
+      "type": "red",
+      "tools": "dig, nslookup, dnsrecon",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{dns_enum_1247}",
+      "steps": []
+    },
+    {
+      "id": "enum-harden-dns",
+      "title": "Harden DNS — Disable Zone Transfers",
+      "type": "blue",
+      "tools": "bind9 config, dig",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{dns_hardened_2358}",
+      "prerequisite": "enum-dns",
+      "steps": []
+    },
+    {
+      "id": "enum-smb",
+      "title": "SMB Enumeration",
+      "type": "red",
+      "tools": "enum4linux, smbclient",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{smb_enum_3469}",
+      "prerequisite": "enum-harden-dns",
+      "steps": []
+    },
+    {
+      "id": "enum-disable-smb",
+      "title": "Disable Anonymous SMB Access",
+      "type": "blue",
+      "tools": "smbclient, smb.conf",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{smb_secured_4570}",
+      "prerequisite": "enum-smb",
+      "steps": []
+    },
+    {
+      "id": "enum-web-dir",
+      "title": "Web Directory Enumeration",
+      "type": "red",
+      "tools": "gobuster, dirb",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{web_dirs_5681}",
+      "prerequisite": "enum-disable-smb",
+      "steps": []
+    },
+    {
+      "id": "enum-block-dirbrute",
+      "title": "Detect & Block Directory Brute-forcing",
+      "type": "blue",
+      "tools": "fail2ban, nginx logs",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{dirbrute_blocked_6792}",
+      "prerequisite": "enum-web-dir",
+      "steps": []
+    },
+    {
+      "id": "enum-snmp",
+      "title": "SNMP Enumeration",
+      "type": "red",
+      "tools": "snmpwalk, onesixtyone",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{snmp_enum_7803}",
+      "prerequisite": "enum-block-dirbrute",
+      "steps": []
+    },
+    {
+      "id": "enum-secure-snmp",
+      "title": "Secure SNMP Configuration",
+      "type": "blue",
+      "tools": "snmpd.conf, ufw",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{snmp_secured_8914}",
+      "prerequisite": "enum-snmp",
+      "steps": []
+    },
+    {
+      "id": "enum-ftp",
+      "title": "FTP Enumeration & Anonymous Login",
+      "type": "red",
+      "tools": "ftp, nmap",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{ftp_anon_9025}",
+      "prerequisite": "enum-secure-snmp",
+      "steps": []
+    },
+    {
+      "id": "enum-disable-ftp-anon",
+      "title": "Disable Anonymous FTP & Audit Access",
+      "type": "blue",
+      "tools": "vsftpd.conf, auditd",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{ftp_secured_1136}",
+      "prerequisite": "enum-ftp",
+      "steps": []
+    },
+    {
+      "id": "enum-ssh-users",
+      "title": "SSH User Enumeration",
+      "type": "red",
+      "tools": "ssh, metasploit auxiliary",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{ssh_users_2247}",
+      "prerequisite": "enum-disable-ftp-anon",
+      "steps": []
+    },
+    {
+      "id": "enum-harden-ssh",
+      "title": "Harden SSH Configuration",
+      "type": "blue",
+      "tools": "sshd_config, fail2ban",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{ssh_hardened_3358}",
+      "prerequisite": "enum-ssh-users",
+      "steps": []
+    },
+    {
+      "id": "enum-full-network",
+      "title": "Full Network Enumeration (Advanced)",
+      "type": "red",
+      "tools": "nmap, enum4linux, gobuster",
+      "docker_image": "cyberrange-lab-red",
+      "flag": "FLAG{full_enum_4469}",
+      "prerequisite": "enum-harden-ssh",
+      "steps": []
+    },
+    {
+      "id": "enum-baseline-detect",
+      "title": "Build a Network Baseline & Detect Anomalies",
+      "type": "blue",
+      "tools": "nmap, diff, cron",
+      "docker_image": "cyberrange-lab-blue",
+      "flag": "FLAG{baseline_built_5570}",
+      "prerequisite": "enum-full-network",
+      "steps": []
+    }
+  ]
+}
