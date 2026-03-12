@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Condensed:wght@700;800;900&family=Roboto+Mono:wght@400;500&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, #root { height: 100%; overflow: hidden; }
+html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
 
 :root {
   --green:  #1EB53A;
@@ -38,8 +38,9 @@ html, body, #root { height: 100%; overflow: hidden; }
   font-family: var(--font-ui);
   background: #000;
   color: #fff;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
