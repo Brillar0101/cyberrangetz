@@ -556,7 +556,8 @@ const CSS = `
     /* Unlock scrolling on mobile */
     html, body, #root { overflow: auto; height: auto; }
     .cr-root { height: auto; min-height: 100vh; overflow: auto; }
-    .cr-hero { min-height: 80vh; height: auto; }
+    .cr-hero { min-height: 80vh; height: auto; flex: none; }
+    .cr-video { object-position: center center; }
     .cr-cards-section { padding: 40px 0; }
 
     .cr-hook-bar { padding: 8px 16px; gap: 8px; }
