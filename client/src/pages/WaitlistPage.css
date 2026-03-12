@@ -159,11 +159,11 @@ html, body, #root { height: 100%; overflow: hidden; }
 ───────────────────────────────────────── */
 .cr-hero {
   position: relative;
-  flex: 0 0 57vh;
+  flex: 1 0 57vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
   text-align: left;
 }
 .cr-video {
