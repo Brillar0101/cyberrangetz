@@ -695,9 +695,10 @@ export default function WaitlistPage() {
             <video
               className="cr-video"
               autoPlay muted loop playsInline
+              onError={() => setVideoError(true)}
             >
-              <source src="/hero.mp4" type="video/mp4" onError={() => setVideoError(true)} />
-              <source src="/hero.mov" type="video/quicktime" onError={() => setVideoError(true)} />
+              <source src="https://res.cloudinary.com/dq97oiqri/video/upload/v1/hero_m1li33.mp4" type="video/mp4" />
+              <source src="https://res.cloudinary.com/dq97oiqri/video/upload/v1/hero_m1li33.webm" type="video/webm" />
             </video>
           ) : (
             <div className="cr-video-fallback" />
