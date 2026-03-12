@@ -55,6 +55,9 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
   justify-content: center;
   gap: 12px;
   padding: 8px 24px;
+  padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  padding-left: calc(24px + env(safe-area-inset-left, 0px));
+  padding-right: calc(24px + env(safe-area-inset-right, 0px));
   background: #080808;
   border-bottom: 1px solid var(--border);
 }
@@ -81,7 +84,8 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 8px 4px;
+  margin: -8px 0;
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: opacity 0.2s;
@@ -389,7 +393,7 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
   width: 100%;
 }
 .cr-share-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-.cr-share-btn.whatsapp { background: #25D366; }
+.cr-share-btn.whatsapp { background: #128C7E; }
 
 /* ── CTA wrapper ── */
 .cr-cta-area {
@@ -451,7 +455,7 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
 .cr-copy-btn {
   font-family: var(--font-mono); font-size: var(--fs-copy-btn); background: none; border: none;
   cursor: pointer; color: #555; transition: color 0.2s;
-  flex-shrink: 0; padding: 0; font-weight: 700;
+  flex-shrink: 0; padding: 8px 12px; margin: -8px -8px -8px 0; font-weight: 700;
 }
 .cr-copy-btn:hover, .cr-copy-btn.copied { color: var(--green); }
 
@@ -554,15 +558,13 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
     --fs-success-title: 28px;
   }
 
-  html, body, #root { overflow: auto; height: auto; }
-  .cr-root { height: auto; min-height: 100vh; overflow: auto; }
-  .cr-hero { min-height: 80vh; height: auto; flex: none; }
+  .cr-hero { min-height: auto; height: auto; flex: none; padding: 48px 0 32px; }
   .cr-video { object-position: center center; }
   .cr-cards-section { padding: 40px 0; }
 
-  .cr-hook-bar { padding: 8px 16px; gap: 8px; }
+  .cr-hook { padding: 8px 16px; gap: 8px; flex-wrap: wrap; }
+  .cr-hook-text { text-align: center; }
   .cr-nav { padding: 0 16px; }
-  .cr-nav-inner { padding: 14px 0; }
   .cr-nav-icon-btn { width: 40px; }
   .cr-nav-signin { padding: 0 12px; font-size: 11px; }
 
@@ -578,11 +580,11 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
     gap: 0;
   }
   .cr-cards-heading { padding: 24px 0; }
-  .cr-card { padding: 16px 0; border-left: none; border-top: 1px solid var(--border); }
+  .cr-card { padding: 16px 8px; border-left: none; border-top: 1px solid var(--border); }
 
   .cr-success-box { padding: 20px 16px; max-width: calc(100% - 40px); overflow: hidden; }
-  .cr-share-row { flex-direction: column; gap: 8px; }
-  .cr-share-url-box { max-width: 100%; }
+  .cr-share-row { gap: 8px; }
+  .cr-share-url { font-size: 11px; }
 
   .cr-learn-bar { gap: 12px; padding: 10px 16px; }
 }
@@ -591,19 +593,25 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
 @media (max-width: 480px) {
   :root {
     --fs-hero-h1: clamp(26px, 7vw, 36px);
-    --fs-email: 14px;
+    --fs-email: 16px;
     --fs-pill-btn: 11px;
     --fs-hook-text: 13px;
     --fs-hook-cta: 13px;
   }
 
-  .cr-hook-bar .cr-hook-cta { display: none; }
+  .cr-hook .cr-hook-cta { display: none; }
   .cr-nav-icon-btn { width: 36px; }
   .cr-nav-signin span { display: none; }
 
+  .cr-hero { padding: 32px 0 24px; }
   .cr-hero-content { width: calc(100% - 32px); padding: 0 16px; }
   .cr-pill-btn { padding: 8px 16px; }
+  .cr-video { object-position: center 40%; }
 
   .cr-cards-grid { width: calc(100% - 32px); }
-  .cr-card { padding: 14px 0; }
+  .cr-card { padding: 14px 4px; }
+
+  .cr-success-box { max-width: calc(100% - 24px); padding: 18px 14px; }
+  .cr-share-url { font-size: 10px; }
+  .cr-confirm-box { padding: 20px 18px; max-width: calc(100% - 24px); }
 }
