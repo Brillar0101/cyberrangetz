@@ -551,11 +551,16 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
 /* ── Tablet ── */
 @media (max-width: 768px) {
   :root {
-    --fs-nav-logo: 20px;
-    --fs-hero-h1: clamp(32px, 8vw, 48px);
-    --fs-cards-heading: clamp(28px, 6vw, 36px);
-    --fs-card-title: 20px;
-    --fs-success-title: 28px;
+    --fs-nav-logo: 18px;
+    --fs-hero-h1: clamp(28px, 6vw, 40px);
+    --fs-cards-heading: clamp(24px, 5vw, 32px);
+    --fs-card-title: 18px;
+    --fs-card-desc: 14px;
+    --fs-success-title: 24px;
+    --fs-success-sub: 14px;
+    --fs-ref-label: 11px;
+    --fs-share-url: 11px;
+    --fs-copy-btn: 13px;
   }
 
   .cr-hero { min-height: auto; height: auto; flex: none; padding: 48px 0 32px; }
@@ -592,11 +597,20 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
 /* ── Phone ── */
 @media (max-width: 480px) {
   :root {
-    --fs-hero-h1: clamp(26px, 7vw, 36px);
+    --fs-nav-logo: 16px;
+    --fs-hero-h1: clamp(22px, 6vw, 28px);
     --fs-email: 16px;
     --fs-pill-btn: 11px;
-    --fs-hook-text: 13px;
-    --fs-hook-cta: 13px;
+    --fs-hook-text: 12px;
+    --fs-hook-cta: 12px;
+    --fs-success-title: 22px;
+    --fs-success-sub: 13px;
+    --fs-cards-heading: 22px;
+    --fs-card-title: 16px;
+    --fs-card-desc: 13px;
+    --fs-ref-label: 10px;
+    --fs-share-url: 10px;
+    --fs-copy-btn: 12px;
   }
 
   .cr-hook .cr-hook-cta { display: none; }
@@ -614,4 +628,9 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
   .cr-success-box { max-width: calc(100% - 24px); padding: 18px 14px; }
   .cr-share-url { font-size: 10px; }
   .cr-confirm-box { padding: 20px 18px; max-width: calc(100% - 24px); }
+
+  .cr-step-label { font-size: clamp(18px, 4.5vw, 22px); }
+  .cr-celebrate-title { font-size: clamp(22px, 5vw, 28px); }
+  .cr-celebrate-sub { font-size: 13px; }
+  .cr-share-btn { font-size: 12px; padding: 10px 16px; }
 }
