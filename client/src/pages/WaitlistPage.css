@@ -565,7 +565,8 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
 
   .cr-hero { min-height: auto; height: auto; flex: none; padding: 48px 0 32px; }
   .cr-video { object-position: center center; }
-  .cr-cards-section { padding: 40px 0; }
+  .cr-cards-section { padding: 24px 0; flex: none; }
+  .cr-cards-heading { padding: 16px 0; }
 
   .cr-hook { padding: 8px 16px; gap: 8px; flex-wrap: wrap; }
   .cr-hook-text { text-align: center; }

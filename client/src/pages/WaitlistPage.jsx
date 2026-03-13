@@ -375,7 +375,7 @@ export default function WaitlistPage() {
         <div className="cr-cards-grid">
           <div className="cr-cards-heading">
             <div className="cr-cards-heading-title">
-              Why<br />CyberRange<br /><span style={{ color: 'var(--green)' }}>TZ</span>
+              Why CyberRange <span style={{ color: 'var(--green)' }}>TZ</span>
             </div>
           </div>
           {cards.map(card => (

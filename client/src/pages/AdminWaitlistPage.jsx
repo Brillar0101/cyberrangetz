@@ -24,6 +24,13 @@ export default function AdminWaitlistPage() {
   const [treeData, setTreeData] = useState(null);
   const [expanded, setExpanded] = useState({});
 
+  // Newsletter state
+  const [nlSubject, setNlSubject]     = useState('');
+  const [nlBody, setNlBody]           = useState('');
+  const [nlSending, setNlSending]     = useState(false);
+  const [nlResult, setNlResult]       = useState(null);
+  const [nlPreview, setNlPreview]     = useState(false);
+
   async function login(e) {
     e.preventDefault();
     if (!secret) return;
@@ -75,6 +82,32 @@ export default function AdminWaitlistPage() {
     } catch {
       setTreeData([]);
     }
+  }
+
+  async function sendNewsletter() {
+    if (!nlSubject.trim() || !nlBody.trim()) return;
+    if (!window.confirm(`Send this newsletter to ALL ${data?.count || 0} subscribers?`)) return;
+    setNlSending(true);
+    setNlResult(null);
+    try {
+      const res = await fetch(`${API}/api/waitlist/admin/newsletter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': secret,
+        },
+        body: JSON.stringify({
+          subject: nlSubject.trim(),
+          bodyContent: nlBody.trim().replace(/\n/g, '<br />'),
+        }),
+      });
+      if (res.status === 401) { setNlResult({ error: 'Unauthorized' }); setNlSending(false); return; }
+      const json = await res.json();
+      setNlResult(json);
+    } catch (err) {
+      setNlResult({ error: err.message || 'Failed to send' });
+    }
+    setNlSending(false);
   }
 
   function switchTab(t) {
@@ -178,6 +211,7 @@ export default function AdminWaitlistPage() {
         <button className={`adm-tab${tab === 'entries' ? ' active' : ''}`} onClick={() => switchTab('entries')}>All Entries</button>
         <button className={`adm-tab${tab === 'top-referrers' ? ' active' : ''}`} onClick={() => switchTab('top-referrers')}>Top Referrers</button>
         <button className={`adm-tab${tab === 'tree' ? ' active' : ''}`} onClick={() => switchTab('tree')}>Referral Tree</button>
+        <button className={`adm-tab${tab === 'newsletter' ? ' active' : ''}`} onClick={() => switchTab('newsletter')}>Newsletter</button>
       </div>
 
       {tab === 'entries' && (
@@ -306,6 +340,83 @@ export default function AdminWaitlistPage() {
             </div>
           )}
         </>
+      )}
+
+      {tab === 'newsletter' && (
+        <div className="adm-nl">
+          <div className="adm-nl-grid">
+            {/* Compose */}
+            <div className="adm-nl-compose">
+              <div className="adm-nl-section-title">Compose Newsletter</div>
+              <div className="adm-nl-info">
+                Sending to <strong>{data?.count || 0}</strong> subscribers. Each email is personalized with "Hi [FirstName]".
+              </div>
+              <label className="adm-nl-label">Subject</label>
+              <input
+                className="adm-nl-input"
+                placeholder="e.g. Cybersecurity Tip #1 — Phishing Awareness"
+                value={nlSubject}
+                onChange={e => setNlSubject(e.target.value)}
+              />
+              <label className="adm-nl-label">Body <span className="adm-nl-hint">(plain text — line breaks become paragraphs)</span></label>
+              <textarea
+                className="adm-nl-textarea"
+                placeholder="Write your newsletter content here..."
+                rows={12}
+                value={nlBody}
+                onChange={e => setNlBody(e.target.value)}
+              />
+              <div className="adm-nl-actions">
+                <button
+                  className="adm-nl-preview-btn"
+                  onClick={() => setNlPreview(!nlPreview)}
+                  disabled={!nlBody.trim()}
+                >
+                  {nlPreview ? 'Hide Preview' : 'Preview'}
+                </button>
+                <button
+                  className="adm-nl-send-btn"
+                  onClick={sendNewsletter}
+                  disabled={nlSending || !nlSubject.trim() || !nlBody.trim()}
+                >
+                  {nlSending ? 'Sending...' : `Send to ${data?.count || 0} subscribers`}
+                </button>
+              </div>
+              {nlResult && (
+                <div className={`adm-nl-result ${nlResult.error ? 'error' : 'success'}`}>
+                  {nlResult.error
+                    ? `Error: ${nlResult.error}`
+                    : `Sent ${nlResult.sent} of ${nlResult.total} emails${nlResult.failed > 0 ? ` (${nlResult.failed} failed)` : ''}.`}
+                </div>
+              )}
+            </div>
+
+            {/* Preview */}
+            {nlPreview && nlBody.trim() && (
+              <div className="adm-nl-preview">
+                <div className="adm-nl-section-title">Preview</div>
+                <div className="adm-nl-preview-card">
+                  <div className="adm-nl-preview-logo">
+                    <span style={{ color: 'var(--green)' }}>Cyber</span>Range TZ
+                  </div>
+                  <div className="adm-nl-preview-divider" />
+                  <div className="adm-nl-preview-subject">{nlSubject || '(No subject)'}</div>
+                  <div className="adm-nl-preview-greeting">Hi FirstName,</div>
+                  <div className="adm-nl-preview-body">
+                    {nlBody.split('\n').map((line, i) => (
+                      <p key={i} style={{ margin: '0 0 10px' }}>{line || '\u00A0'}</p>
+                    ))}
+                  </div>
+                  <div className="adm-nl-preview-divider" />
+                  <div className="adm-nl-preview-signoff">
+                    <p style={{ margin: '0 0 4px', color: 'rgba(255,255,255,0.6)' }}>Best,</p>
+                    <p style={{ margin: 0, fontWeight: 700 }}>The CyberRange TZ Team</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

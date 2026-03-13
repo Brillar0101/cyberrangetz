@@ -3,7 +3,7 @@ const router = express.Router();
 const { pool } = require('../db');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
-const { sendWaitlistConfirmation, sendTierUnlockedEmail } = require('../services/email');
+const { sendWaitlistConfirmation, sendTierUnlockedEmail, sendNewsletter } = require('../services/email');
 
 // ── Rate limiters ────────────────────────────────────────────────────────────
 
@@ -148,8 +148,6 @@ router.post('/', signupLimiter, async (req, res) => {
     sendWaitlistConfirmation({
       firstName: firstName.trim(),
       email: cleanEmail,
-      referralCode: inserted[0].referral_code,
-      position,
     }).catch(err => console.error('[email] Failed to send confirmation:', err));
 
     res.json({
@@ -298,6 +296,70 @@ router.get('/admin/referral-tree', adminLimiter, async (req, res) => {
     res.json({ tree: rows });
   } catch (err) {
     console.error('Referral tree error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/waitlist/admin/newsletter — send newsletter to all subscribers
+router.post('/admin/newsletter', adminLimiter, async (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { subject, bodyContent } = req.body;
+  if (!subject || !bodyContent) {
+    return res.status(400).json({ error: 'subject and bodyContent are required' });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      'SELECT first_name, email FROM waitlist ORDER BY created_at ASC'
+    );
+
+    let sent = 0;
+    let failed = 0;
+    const errors = [];
+
+    for (const row of rows) {
+      try {
+        await sendNewsletter({
+          firstName: row.first_name,
+          email: row.email,
+          subject,
+          bodyContent,
+        });
+        sent++;
+        // Small delay to avoid SMTP rate limits
+        await new Promise(r => setTimeout(r, 200));
+      } catch (err) {
+        failed++;
+        errors.push({ email: row.email, error: err.message });
+      }
+    }
+
+    res.json({ total: rows.length, sent, failed, errors: errors.slice(0, 10) });
+  } catch (err) {
+    console.error('Newsletter error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/waitlist/admin/export — export subscribers for external tools
+router.get('/admin/export', adminLimiter, async (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT first_name, last_name, email, created_at
+       FROM waitlist ORDER BY created_at ASC`
+    );
+    res.json({ count: rows.length, subscribers: rows });
+  } catch (err) {
+    console.error('Export error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
