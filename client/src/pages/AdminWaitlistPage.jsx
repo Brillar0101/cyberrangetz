@@ -129,19 +129,23 @@ export default function AdminWaitlistPage() {
     return (
       <div className="adm-root">
         <form className="adm-gate" onSubmit={login}>
-          <div className="adm-gate-title">CyberRange TZ — Admin</div>
-          <input
-            className="adm-gate-input"
-            type="password"
-            placeholder="Enter admin secret"
-            value={secret}
-            onChange={e => setSecret(e.target.value)}
-            autoFocus
-          />
-          {error && <div className="adm-gate-error">{error}</div>}
-          <button className="adm-gate-btn" type="submit" disabled={loading}>
-            {loading ? 'Checking...' : 'Access Dashboard'}
-          </button>
+          <div className="adm-gate-card">
+            <div className="adm-gate-lock">&#128274;</div>
+            <div className="adm-gate-title"><span>Cyber</span>Range TZ</div>
+            <div className="adm-gate-subtitle">Admin Dashboard</div>
+            <input
+              className="adm-gate-input"
+              type="password"
+              placeholder="Enter admin secret"
+              value={secret}
+              onChange={e => setSecret(e.target.value)}
+              autoFocus
+            />
+            {error && <div className="adm-gate-error">{error}</div>}
+            <button className="adm-gate-btn" type="submit" disabled={loading}>
+              {loading ? 'Checking...' : 'Access Dashboard'}
+            </button>
+          </div>
         </form>
       </div>
     );
@@ -201,7 +205,7 @@ export default function AdminWaitlistPage() {
             <div className="adm-stat-label">Active referrers</div>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="adm-header-actions">
           <button className="adm-logout" onClick={() => { refresh(); setTopReferrers(null); setTreeData(null); }}>↻ Refresh</button>
           <button className="adm-logout" onClick={() => { setAuthed(false); setData(null); }}>Sign out</button>
         </div>

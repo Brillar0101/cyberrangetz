@@ -11,6 +11,7 @@
   --muted:  rgba(255,255,255,0.45);
   --bg:     #050505;
   --surface:#0d0d0d;
+  --surface2:#111111;
 }
 
 .adm-root {
@@ -18,7 +19,7 @@
   background: var(--bg);
   color: #fff;
   min-height: 100vh;
-  padding: 40px 60px;
+  padding: 32px 48px;
 }
 
 /* ── Login gate ── */
@@ -30,24 +31,52 @@
   min-height: 100vh;
   gap: 16px;
 }
+.adm-gate-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 400px;
+  max-width: calc(100% - 32px);
+}
+.adm-gate-lock {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(30,181,58,0.1);
+  border: 1px solid rgba(30,181,58,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
 .adm-gate-title {
-  font-family: 'Roboto', sans-serif;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--green);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.adm-gate-title span { color: var(--green); }
+.adm-gate-subtitle {
+  font-size: 13px;
+  color: var(--muted);
   margin-bottom: 8px;
 }
 .adm-gate-input {
-  background: var(--surface);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 18px;
   color: #fff;
   font-family: 'Roboto Mono', monospace;
   font-size: 14px;
-  width: 320px;
+  width: 100%;
   outline: none;
 }
 .adm-gate-input:focus { border-color: var(--green); }
@@ -60,7 +89,7 @@
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
-  width: 320px;
+  width: 100%;
   transition: background 0.2s;
 }
 .adm-gate-btn:hover { background: #22d644; }
@@ -72,30 +101,44 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
+  gap: 24px;
+  margin-bottom: 28px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 .adm-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 .adm-title span { color: var(--green); }
-.adm-stats { display: flex; gap: 32px; }
-.adm-stat { text-align: right; }
+.adm-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+.adm-stat {
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 20px;
+  min-width: 100px;
+}
 .adm-stat-num {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--green);
   line-height: 1;
+  font-family: 'Roboto Mono', monospace;
 }
 .adm-stat-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 4px;
+}
+.adm-header-actions {
+  display: flex;
+  gap: 8px;
 }
 .adm-logout {
   background: none;
@@ -106,6 +149,7 @@
   font-size: 12px;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
 }
 .adm-logout:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
 
@@ -115,7 +159,11 @@
   gap: 0;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.adm-tabs::-webkit-scrollbar { display: none; }
 .adm-tab {
   background: none;
   border: none;
@@ -129,6 +177,7 @@
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
 }
 .adm-tab:hover { color: #fff; }
 .adm-tab.active { color: var(--green); border-bottom-color: var(--green); }
@@ -139,6 +188,7 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 .adm-search {
   flex: 1;
@@ -149,6 +199,7 @@
   color: #fff;
   font-size: 14px;
   outline: none;
+  min-width: 200px;
   max-width: 380px;
 }
 .adm-search:focus { border-color: var(--green); }
@@ -160,6 +211,7 @@
   border: 1px solid var(--border);
   border-radius: 100px;
   padding: 6px 14px;
+  white-space: nowrap;
 }
 
 /* ── Table ── */
@@ -194,8 +246,9 @@
   border-bottom: 1px solid var(--border);
   transition: background 0.15s;
 }
+.adm-table-wrap tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
 .adm-table-wrap tbody tr:last-child { border-bottom: none; }
-.adm-table-wrap tbody tr:hover { background: rgba(255,255,255,0.03); }
+.adm-table-wrap tbody tr:hover { background: rgba(255,255,255,0.04); }
 .adm-table-wrap td {
   padding: 12px 16px;
   color: rgba(255,255,255,0.85);
@@ -213,7 +266,7 @@
 /* ── Top referrers cards ── */
 .adm-referrer-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
 }
 .adm-referrer-card {
@@ -266,6 +319,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .adm-tree-node.has-children { border-left: 3px solid var(--green); }
 .adm-tree-children {
@@ -284,6 +339,8 @@
   font-size: 12px;
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 .adm-tree-toggle {
   background: none;
@@ -313,8 +370,11 @@
   gap: 24px;
   align-items: start;
 }
-@media (max-width: 900px) {
-  .adm-nl-grid { grid-template-columns: 1fr; }
+.adm-nl-compose {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
 }
 .adm-nl-section-title {
   font-size: 14px;
@@ -342,7 +402,7 @@
 .adm-nl-hint { font-size: 10px; text-transform: none; letter-spacing: normal; }
 .adm-nl-input {
   width: 100%;
-  background: var(--surface);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 16px;
@@ -355,7 +415,7 @@
 .adm-nl-input::placeholder { color: var(--muted); }
 .adm-nl-textarea {
   width: 100%;
-  background: var(--surface);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px 16px;
@@ -374,6 +434,7 @@
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 .adm-nl-preview-btn {
   background: none;
@@ -459,4 +520,24 @@
 .adm-nl-preview-signoff {
   font-size: 13px;
   color: rgba(255,255,255,0.6);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .adm-root { padding: 24px 20px; }
+  .adm-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .adm-stats { width: 100%; justify-content: flex-start; }
+  .adm-stat { flex: 1; min-width: 80px; }
+  .adm-nl-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .adm-root { padding: 16px 12px; }
+  .adm-title { font-size: 18px; }
+  .adm-stat { padding: 10px 12px; }
+  .adm-stat-num { font-size: 22px; }
+  .adm-tab { padding: 10px 16px; font-size: 11px; }
+  .adm-nl-compose { padding: 20px 16px; }
+  .adm-nl-preview-card { padding: 20px 16px; }
+  .adm-gate-card { padding: 36px 24px; }
 }
