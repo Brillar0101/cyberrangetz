@@ -30,14 +30,26 @@ function getTransporter() {
 
 // ── Email wrapper ──────────────────────────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
+  console.log(`[email] Attempting to send "${subject}" to ${to}`);
+  console.log(`[email] SMTP_USER=${SMTP_USER}, SMTP_PASS=${SMTP_PASS ? '***set***' : '***NOT SET***'}, FROM=${FROM_EMAIL}`);
   const transport = getTransporter();
-  if (!transport) return;
-  return transport.sendMail({
-    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
-    to,
-    subject,
-    html,
-  });
+  if (!transport) {
+    console.warn('[email] No transporter — skipping');
+    return;
+  }
+  try {
+    const info = await transport.sendMail({
+      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log(`[email] Sent successfully: ${info.messageId}`);
+    return info;
+  } catch (err) {
+    console.error(`[email] FAILED:`, err.message);
+    throw err;
+  }
 }
 
 // ── Shared styles ──────────────────────────────────────────────────────────
