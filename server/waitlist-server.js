@@ -27,6 +27,7 @@ app.use(cors({
     cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  allowedHeaders: ['Content-Type', 'x-admin-secret', 'Authorization'],
 }));
 app.use(express.json());
 app.use(cookieParser());
