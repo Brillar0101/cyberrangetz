@@ -8,7 +8,7 @@ const SMTP_PASS = process.env.SMTP_PASS;             // Gmail App Password (16 c
 const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER;
 const FROM_NAME  = process.env.FROM_NAME || 'CyberRange TZ';
 const BASE_URL   = process.env.CLIENT_URL || 'https://cyberrangetz.com';
-const WHATSAPP_LINK = process.env.WHATSAPP_LINK || 'https://chat.whatsapp.com/YOUR_GROUP_LINK';
+const WHATSAPP_LINK = process.env.WHATSAPP_LINK || '';
 
 // Reusable transporter (created lazily, cached)
 let _transporter = null;
@@ -95,11 +95,11 @@ function welcomeHtml({ firstName }) {
               cybersecurity industry. We'd love for you to follow along.
             </p>
             <p style="${STYLES.body}">
-              Join our WhatsApp community below to stay in the loop.
+              Stay tuned — exciting things are coming soon.
             </p>
           </td>
         </tr>
-
+${WHATSAPP_LINK ? `
         <!-- CTA -->
         <tr>
           <td style="${STYLES.btnWrap}">
@@ -107,7 +107,7 @@ function welcomeHtml({ firstName }) {
               Join WhatsApp Community &rarr;
             </a>
           </td>
-        </tr>
+        </tr>` : ''}
 
         <!-- Divider -->
         <tr><td><div style="${STYLES.divider}"></div></td></tr>
