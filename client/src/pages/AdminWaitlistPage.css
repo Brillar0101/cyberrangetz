@@ -327,6 +327,22 @@
 .adm-stat-sent { color: var(--blue); }
 .adm-stat-opened { color: var(--yellow); }
 .adm-stat-bounced { color: #f97316; }
+.adm-stat-dupes { color: #a855f7; }
+
+/* ── Duplicate badge ── */
+.td-dupes { text-align: center; }
+.adm-dupe-badge {
+  display: inline-block;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(168,85,247,0.15);
+  color: #a855f7;
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 4px;
+  padding: 1px 8px;
+  cursor: help;
+}
 
 /* ── Filter select ── */
 .adm-filter-select {

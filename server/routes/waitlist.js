@@ -79,9 +79,13 @@ router.post('/', signupLimiter, async (req, res) => {
       [firstName.trim(), lastName.trim(), cleanEmail, referralCode, referrerId]
     );
 
-    // If already on waitlist, return their existing code
+    // If already on waitlist, track the duplicate attempt and return their existing code
     if (inserted.length === 0) {
       await client.query('COMMIT');
+      pool.query(
+        'UPDATE waitlist SET duplicate_attempts = duplicate_attempts + 1, last_duplicate_at = NOW() WHERE email = $1',
+        [cleanEmail]
+      ).catch(e => console.error('[db] Failed to track duplicate:', e));
       const { rows: existing } = await pool.query(
         `SELECT referral_code,
                 (SELECT COUNT(*) FROM waitlist WHERE referred_by = w.id) AS referrals
@@ -172,7 +176,7 @@ router.post('/', signupLimiter, async (req, res) => {
 });
 
 // GET /api/waitlist/count
-router.get('/count', async (_req, res) => {
+router.get('/count', statsLimiter, async (_req, res) => {
   try {
     const { rows } = await pool.query('SELECT COUNT(*) FROM waitlist');
     res.json({ count: parseInt(rows[0].count) });
@@ -184,7 +188,7 @@ router.get('/count', async (_req, res) => {
 // GET /api/admin/waitlist — protected by ADMIN_SECRET header
 router.get('/admin', adminLimiter, async (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  if (!secret || !process.env.ADMIN_SECRET || !safeCompare(secret, process.env.ADMIN_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
@@ -200,6 +204,8 @@ router.get('/admin', adminLimiter, async (req, res) => {
         w.email_opened_at,
         w.email_bounced_at,
         w.bounce_reason,
+        w.duplicate_attempts,
+        w.last_duplicate_at,
         w.created_at,
         ref.email AS referred_by_email,
         ROW_NUMBER() OVER (ORDER BY w.created_at ASC) AS position
@@ -261,7 +267,7 @@ router.get('/tiers', statsLimiter, async (_req, res) => {
 // GET /api/waitlist/admin/top-referrers — top referrers leaderboard (admin)
 router.get('/admin/top-referrers', adminLimiter, async (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  if (!secret || !process.env.ADMIN_SECRET || !safeCompare(secret, process.env.ADMIN_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
@@ -291,7 +297,7 @@ router.get('/admin/top-referrers', adminLimiter, async (req, res) => {
 // GET /api/waitlist/admin/referral-tree — full referral tree (admin)
 router.get('/admin/referral-tree', adminLimiter, async (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  if (!secret || !process.env.ADMIN_SECRET || !safeCompare(secret, process.env.ADMIN_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
@@ -313,7 +319,7 @@ router.get('/admin/referral-tree', adminLimiter, async (req, res) => {
 // POST /api/waitlist/admin/newsletter — send newsletter to all subscribers
 router.post('/admin/newsletter', adminLimiter, async (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  if (!secret || !process.env.ADMIN_SECRET || !safeCompare(secret, process.env.ADMIN_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -365,7 +371,7 @@ router.post('/admin/newsletter', adminLimiter, async (req, res) => {
 // POST /api/waitlist/admin/newsletter-test — send test newsletter to one email
 router.post('/admin/newsletter-test', adminLimiter, async (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  if (!secret || !process.env.ADMIN_SECRET || !safeCompare(secret, process.env.ADMIN_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -397,7 +403,7 @@ router.post('/admin/newsletter-test', adminLimiter, async (req, res) => {
 // GET /api/waitlist/admin/export — export subscribers for external tools
 router.get('/admin/export', adminLimiter, async (req, res) => {
   const secret = req.headers['x-admin-secret'];
-  if (!secret || secret !== process.env.ADMIN_SECRET) {
+  if (!secret || !process.env.ADMIN_SECRET || !safeCompare(secret, process.env.ADMIN_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -473,10 +479,24 @@ router.get('/email-status/:email', statsLimiter, async (req, res) => {
 // POST /api/waitlist/webhook/resend — Resend webhook for bounce/complaint events
 const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || '';
 
-router.post('/webhook/resend', express.json(), async (req, res) => {
-  // Verify webhook secret via query param
-  const secret = req.query.secret || '';
-  if (!RESEND_WEBHOOK_SECRET || secret !== RESEND_WEBHOOK_SECRET) {
+const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+function safeCompare(a, b) {
+  const aBuf = Buffer.from(String(a));
+  const bBuf = Buffer.from(String(b));
+  if (aBuf.length !== bBuf.length) return false;
+  return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
+router.post('/webhook/resend', webhookLimiter, express.json(), async (req, res) => {
+  // Verify webhook secret via header or query param
+  const secret = req.headers['x-webhook-secret'] || req.query.secret || '';
+  if (!RESEND_WEBHOOK_SECRET || !safeCompare(secret, RESEND_WEBHOOK_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -493,7 +513,7 @@ router.post('/webhook/resend', express.json(), async (req, res) => {
   try {
     if (type === 'email.bounced' || type === 'email.complained') {
       const reason = type === 'email.bounced'
-        ? (data.bounce?.message || 'Bounced').slice(0, 255)
+        ? sanitizeHtml(data.bounce?.message || 'Bounced', { allowedTags: [] }).slice(0, 255)
         : 'Marked as spam';
 
       await pool.query(
@@ -501,12 +521,13 @@ router.post('/webhook/resend', express.json(), async (req, res) => {
          WHERE LOWER(email) = LOWER($2) AND email_bounced_at IS NULL`,
         [reason, recipientEmail]
       );
-      console.log(`[webhook] ${type} recorded for ${recipientEmail}`);
+      const masked = recipientEmail.replace(/^(.{2}).*(@.*)$/, '$1***$2');
+      console.log(`[webhook] ${type} recorded for ${masked}`);
     }
 
     res.status(200).json({ received: true });
   } catch (err) {
-    console.error('[webhook] Error processing event:', err);
+    console.error('[webhook] Error processing event:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

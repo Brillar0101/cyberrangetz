@@ -51,6 +51,8 @@ async function initDB() {
     ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS email_opened_at TIMESTAMP;
     ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS email_bounced_at TIMESTAMP;
     ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS bounce_reason VARCHAR(255);
+    ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS duplicate_attempts INTEGER DEFAULT 0;
+    ALTER TABLE waitlist ADD COLUMN IF NOT EXISTS last_duplicate_at TIMESTAMP;
 
     CREATE INDEX IF NOT EXISTS idx_waitlist_referred_by ON waitlist(referred_by);
     CREATE INDEX IF NOT EXISTS idx_waitlist_referral_code ON waitlist(referral_code);

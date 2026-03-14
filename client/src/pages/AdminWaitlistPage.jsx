@@ -58,7 +58,7 @@ export default function AdminWaitlistPage() {
       if (res.status === 401) { setError('Wrong secret.'); setLoading(false); return; }
       if (!res.ok) { setError(`Server error (${res.status})`); setLoading(false); return; }
       const json = await res.json();
-      console.log('[admin] API response:', JSON.stringify(json).slice(0, 500));
+      console.log('[admin] Loaded', json.count, 'entries');
       // Ensure count is a number
       json.count = parseInt(json.count) || 0;
       // Ensure entries are safe to render
@@ -271,6 +271,7 @@ export default function AdminWaitlistPage() {
       if (emailFilter === 'not-sent' && r.email_sent) return false;
       if (emailFilter === 'opened' && !r.email_opened_at) return false;
       if (emailFilter === 'bounced' && !r.email_bounced_at) return false;
+      if (emailFilter === 'duplicates' && !(parseInt(r.duplicate_attempts) > 0)) return false;
       // Search filter
       const q = search.toLowerCase();
       if (!q) return true;
@@ -361,6 +362,10 @@ export default function AdminWaitlistPage() {
             <div className="adm-stat-num adm-stat-bounced">{entries.filter(r => r.email_bounced_at).length}</div>
             <div className="adm-stat-label">Bounced</div>
           </div>
+          <div className="adm-stat">
+            <div className="adm-stat-num adm-stat-dupes">{entries.reduce((sum, r) => sum + (parseInt(r.duplicate_attempts) || 0), 0)}</div>
+            <div className="adm-stat-label">Duplicate attempts</div>
+          </div>
         </div>
         <div className="adm-header-actions">
           <button className="adm-logout" onClick={() => { refresh(); setTopReferrers(null); setTreeData(null); }}>↻ Refresh</button>
@@ -394,6 +399,7 @@ export default function AdminWaitlistPage() {
               <option value="not-sent">Not Sent</option>
               <option value="opened">Opened</option>
               <option value="bounced">Bounced</option>
+              <option value="duplicates">Has Duplicates</option>
             </select>
             <div className="adm-count-pill">{filtered.length} of {entries.length} entries</div>
             {selected.size > 0 && (
@@ -434,6 +440,7 @@ export default function AdminWaitlistPage() {
                     <th>Referred By</th>
                     <th onClick={() => toggleSort('created_at')}>Joined{arrow('created_at')}</th>
                     <th>Email Status</th>
+                    <th onClick={() => toggleSort('duplicate_attempts')}>Dupes{arrow('duplicate_attempts')}</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -469,6 +476,13 @@ export default function AdminWaitlistPage() {
                             )}
                           </>
                         )}
+                      </td>
+                      <td className="td-dupes">
+                        {parseInt(row.duplicate_attempts) > 0 ? (
+                          <span className="adm-dupe-badge" title={row.last_duplicate_at ? `Last: ${fmt(row.last_duplicate_at)}` : ''}>
+                            {row.duplicate_attempts}
+                          </span>
+                        ) : '—'}
                       </td>
                       <td>
                         <button
