@@ -260,6 +260,52 @@
 .td-refs { font-weight: 700; color: var(--green); }
 .td-refs-zero { color: var(--muted); font-weight: 400; }
 .td-date { font-family: 'Roboto Mono', monospace; font-size: 11px; color: var(--muted); }
+
+/* ── Email status column ── */
+.td-email-status {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.adm-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.adm-dot.sent { background: var(--green); box-shadow: 0 0 5px rgba(30,181,58,0.5); }
+.adm-dot.not-sent { background: var(--red); box-shadow: 0 0 5px rgba(248,113,113,0.4); }
+.adm-opened-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(0,163,221,0.15);
+  color: var(--blue);
+  border: 1px solid rgba(0,163,221,0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 4px;
+}
+.adm-resend-btn {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--green);
+  border: 1px solid rgba(30,181,58,0.3);
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.adm-resend-btn:hover { background: rgba(30,181,58,0.1); border-color: var(--green); }
+.adm-resend-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .td-via { font-size: 12px; color: var(--yellow); }
 .td-via-none { color: var(--muted); font-size: 12px; }
 

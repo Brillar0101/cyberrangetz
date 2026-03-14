@@ -31,6 +31,9 @@ export default function AdminWaitlistPage() {
   const [nlResult, setNlResult]       = useState(null);
   const [nlPreview, setNlPreview]     = useState(false);
 
+  // Resend state (tracks which row is currently resending)
+  const [resendingId, setResendingId] = useState(null);
+
   async function login(e) {
     e.preventDefault();
     if (!secret) return;
@@ -127,6 +130,27 @@ export default function AdminWaitlistPage() {
       setNlResult({ error: err.message || 'Failed to send' });
     }
     setNlSending(false);
+  }
+
+  async function resendEmail(row) {
+    setResendingId(row.id);
+    try {
+      const res = await fetch(`${API}/api/waitlist/resend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: row.email }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert(`Email resent to ${row.email}`);
+        refresh();
+      } else {
+        alert(`Failed: ${json.error || 'Unknown error'}`);
+      }
+    } catch {
+      alert('Failed to resend email.');
+    }
+    setResendingId(null);
   }
 
   function switchTab(t) {
@@ -264,6 +288,8 @@ export default function AdminWaitlistPage() {
                     <th onClick={() => toggleSort('referral_count')}>Referrals{arrow('referral_count')}</th>
                     <th>Referred By</th>
                     <th onClick={() => toggleSort('created_at')}>Joined{arrow('created_at')}</th>
+                    <th>Email Status</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -280,6 +306,22 @@ export default function AdminWaitlistPage() {
                         {row.referred_by_email || '—'}
                       </td>
                       <td className="td-date">{fmt(row.created_at)}</td>
+                      <td className="td-email-status">
+                        <span className={`adm-dot ${row.email_sent ? 'sent' : 'not-sent'}`} />
+                        {row.email_sent ? 'Sent' : 'Not sent'}
+                        {row.email_opened_at && (
+                          <span className="adm-opened-badge">Opened</span>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          className="adm-resend-btn"
+                          onClick={() => resendEmail(row)}
+                          disabled={resendingId === row.id}
+                        >
+                          {resendingId === row.id ? '...' : 'Resend'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
