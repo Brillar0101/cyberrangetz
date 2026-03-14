@@ -2,6 +2,12 @@ const { Pool } = require('pg');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  ssl: process.env.DATABASE_URL?.includes('render.com')
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 async function initDB() {
@@ -56,6 +62,8 @@ async function initDB() {
 
     CREATE INDEX IF NOT EXISTS idx_waitlist_referred_by ON waitlist(referred_by);
     CREATE INDEX IF NOT EXISTS idx_waitlist_referral_code ON waitlist(referral_code);
+    CREATE INDEX IF NOT EXISTS idx_waitlist_email ON waitlist(email);
+    CREATE INDEX IF NOT EXISTS idx_waitlist_email_lower ON waitlist(LOWER(email));
 
     CREATE TABLE IF NOT EXISTS referral_tiers (
       id SERIAL PRIMARY KEY,
