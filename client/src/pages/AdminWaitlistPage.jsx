@@ -34,6 +34,18 @@ export default function AdminWaitlistPage() {
   // Resend state (tracks which row is currently resending)
   const [resendingId, setResendingId] = useState(null);
 
+  // Email filter state
+  const [emailFilter, setEmailFilter] = useState('all');
+
+  // Bulk select state
+  const [selected, setSelected]       = useState(new Set());
+  const [bulkSending, setBulkSending] = useState(false);
+
+  // Test email state
+  const [testEmail, setTestEmail]     = useState('');
+  const [testSending, setTestSending] = useState(false);
+  const [testResult, setTestResult]   = useState(null);
+
   async function login(e) {
     e.preventDefault();
     if (!secret) return;
@@ -173,6 +185,67 @@ export default function AdminWaitlistPage() {
     }
   }
 
+  function toggleSelect(id) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selected.size === sorted.length) setSelected(new Set());
+    else setSelected(new Set(sorted.map(r => r.id)));
+  }
+
+  async function bulkResend(rows) {
+    if (!rows.length) return;
+    if (!window.confirm(`Resend confirmation email to ${rows.length} subscriber${rows.length > 1 ? 's' : ''}?`)) return;
+    setBulkSending(true);
+    let ok = 0, fail = 0;
+    for (const row of rows) {
+      try {
+        const res = await fetch(`${API}/api/waitlist/resend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: row.email, referralCode: row.referral_code }),
+        });
+        const json = await res.json();
+        if (json.success) ok++; else fail++;
+        await new Promise(r => setTimeout(r, 200));
+      } catch { fail++; }
+    }
+    alert(`Done: ${ok} sent, ${fail} failed`);
+    setBulkSending(false);
+    setSelected(new Set());
+    refresh();
+  }
+
+  async function sendTestNewsletter() {
+    if (!testEmail.trim() || !nlSubject.trim() || !nlBody.trim()) return;
+    setTestSending(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(`${API}/api/waitlist/admin/newsletter-test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': secret,
+        },
+        body: JSON.stringify({
+          subject: nlSubject.trim(),
+          bodyContent: nlBody.trim().replace(/\n/g, '<br />'),
+          testEmail: testEmail.trim(),
+        }),
+      });
+      const json = await res.json();
+      setTestResult(json.error ? { error: json.error } : { success: true });
+    } catch (err) {
+      setTestResult({ error: err.message || 'Failed to send test' });
+    }
+    setTestSending(false);
+  }
+
   function switchTab(t) {
     setTab(t);
     if (t === 'top-referrers') loadTopReferrers();
@@ -192,13 +265,20 @@ export default function AdminWaitlistPage() {
   const entries = data?.entries || [];
 
   const filtered = useMemo(() =>
-    entries.filter(r =>
-      r.email.toLowerCase().includes(search.toLowerCase()) ||
-      r.referral_code.includes(search) ||
-      (r.first_name || '').toLowerCase().includes(search.toLowerCase()) ||
-      (r.last_name || '').toLowerCase().includes(search.toLowerCase()) ||
-      (r.referred_by_email || '').toLowerCase().includes(search.toLowerCase())
-    ), [entries, search]);
+    entries.filter(r => {
+      // Email status filter
+      if (emailFilter === 'sent' && !r.email_sent) return false;
+      if (emailFilter === 'not-sent' && r.email_sent) return false;
+      if (emailFilter === 'opened' && !r.email_opened_at) return false;
+      // Search filter
+      const q = search.toLowerCase();
+      if (!q) return true;
+      return r.email.toLowerCase().includes(q) ||
+        r.referral_code.includes(q) ||
+        (r.first_name || '').toLowerCase().includes(q) ||
+        (r.last_name || '').toLowerCase().includes(q) ||
+        (r.referred_by_email || '').toLowerCase().includes(q);
+    }), [entries, search, emailFilter]);
 
   const sorted = useMemo(() =>
     [...filtered].sort((a, b) => {
@@ -268,6 +348,14 @@ export default function AdminWaitlistPage() {
             <div className="adm-stat-num">{entries.filter(r => parseInt(r.referral_count) > 0).length}</div>
             <div className="adm-stat-label">Active referrers</div>
           </div>
+          <div className="adm-stat">
+            <div className="adm-stat-num adm-stat-sent">{entries.filter(r => r.email_sent).length}</div>
+            <div className="adm-stat-label">Emails sent</div>
+          </div>
+          <div className="adm-stat">
+            <div className="adm-stat-num adm-stat-opened">{entries.filter(r => r.email_opened_at).length}</div>
+            <div className="adm-stat-label">Emails opened</div>
+          </div>
         </div>
         <div className="adm-header-actions">
           <button className="adm-logout" onClick={() => { refresh(); setTopReferrers(null); setTreeData(null); }}>↻ Refresh</button>
@@ -291,7 +379,35 @@ export default function AdminWaitlistPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
+            <select
+              className="adm-filter-select"
+              value={emailFilter}
+              onChange={e => setEmailFilter(e.target.value)}
+            >
+              <option value="all">All</option>
+              <option value="sent">Sent</option>
+              <option value="not-sent">Not Sent</option>
+              <option value="opened">Opened</option>
+            </select>
             <div className="adm-count-pill">{filtered.length} of {entries.length} entries</div>
+            {selected.size > 0 && (
+              <button
+                className="adm-bulk-btn"
+                onClick={() => bulkResend(sorted.filter(r => selected.has(r.id)))}
+                disabled={bulkSending}
+              >
+                {bulkSending ? 'Sending...' : `Resend to ${selected.size} selected`}
+              </button>
+            )}
+            {emailFilter === 'not-sent' && filtered.length > 0 && selected.size === 0 && (
+              <button
+                className="adm-bulk-btn"
+                onClick={() => bulkResend(filtered)}
+                disabled={bulkSending}
+              >
+                {bulkSending ? 'Sending...' : `Resend all ${filtered.length} unsent`}
+              </button>
+            )}
           </div>
 
           <div className="adm-table-wrap">
@@ -301,6 +417,9 @@ export default function AdminWaitlistPage() {
               <table>
                 <thead>
                   <tr>
+                    <th className="th-check">
+                      <input type="checkbox" checked={selected.size === sorted.length && sorted.length > 0} onChange={toggleSelectAll} />
+                    </th>
                     <th onClick={() => toggleSort('position')}>#{ arrow('position')}</th>
                     <th onClick={() => toggleSort('first_name')}>Name{arrow('first_name')}</th>
                     <th onClick={() => toggleSort('email')}>Email{arrow('email')}</th>
@@ -315,6 +434,9 @@ export default function AdminWaitlistPage() {
                 <tbody>
                   {sorted.map(row => (
                     <tr key={row.id}>
+                      <td className="td-check">
+                        <input type="checkbox" checked={selected.has(row.id)} onChange={() => toggleSelect(row.id)} />
+                      </td>
                       <td className="td-pos">{row.position}</td>
                       <td className="td-email">{row.first_name ? `${row.first_name} ${row.last_name}` : '—'}</td>
                       <td className="td-email">{row.email}</td>
@@ -330,7 +452,7 @@ export default function AdminWaitlistPage() {
                         <span className={`adm-dot ${row.email_sent ? 'sent' : 'not-sent'}`} />
                         {row.email_sent ? 'Sent' : 'Not sent'}
                         {row.email_opened_at && (
-                          <span className="adm-opened-badge">Opened</span>
+                          <span className="adm-opened-badge" title={`Opened: ${fmt(row.email_opened_at)}`}>Opened</span>
                         )}
                       </td>
                       <td>
@@ -467,6 +589,30 @@ export default function AdminWaitlistPage() {
                 >
                   {nlSending ? 'Sending...' : `Send to ${data?.count || 0} subscribers`}
                 </button>
+              </div>
+              <div className="adm-nl-test">
+                <label className="adm-nl-label">Send test first</label>
+                <div className="adm-nl-test-row">
+                  <input
+                    className="adm-nl-test-input"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={testEmail}
+                    onChange={e => setTestEmail(e.target.value)}
+                  />
+                  <button
+                    className="adm-nl-test-btn"
+                    onClick={sendTestNewsletter}
+                    disabled={testSending || !testEmail.trim() || !nlSubject.trim() || !nlBody.trim()}
+                  >
+                    {testSending ? 'Sending...' : 'Send Test'}
+                  </button>
+                </div>
+                {testResult && (
+                  <div className={`adm-nl-result ${testResult.error ? 'error' : 'success'}`} style={{ marginTop: 8 }}>
+                    {testResult.error ? `Error: ${testResult.error}` : 'Test email sent! Check your inbox.'}
+                  </div>
+                )}
               </div>
               {nlResult && (
                 <div className={`adm-nl-result ${nlResult.error ? 'error' : 'success'}`}>

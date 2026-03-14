@@ -360,6 +360,38 @@ router.post('/admin/newsletter', adminLimiter, async (req, res) => {
   }
 });
 
+// POST /api/waitlist/admin/newsletter-test — send test newsletter to one email
+router.post('/admin/newsletter-test', adminLimiter, async (req, res) => {
+  const secret = req.headers['x-admin-secret'];
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { subject, bodyContent, testEmail } = req.body;
+  if (!subject || !bodyContent || !testEmail) {
+    return res.status(400).json({ error: 'subject, bodyContent, and testEmail are required' });
+  }
+
+  const cleanBody = sanitizeHtml(bodyContent, {
+    allowedTags: ['p', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3'],
+    allowedAttributes: { 'a': ['href'] },
+    allowedSchemes: ['https', 'http', 'mailto'],
+  });
+
+  try {
+    await sendNewsletter({
+      firstName: 'Test',
+      email: testEmail.trim().toLowerCase(),
+      subject: `[TEST] ${subject}`,
+      bodyContent: cleanBody,
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Test newsletter error:', err);
+    res.status(500).json({ error: err.message || 'Failed to send test' });
+  }
+});
+
 // GET /api/waitlist/admin/export — export subscribers for external tools
 router.get('/admin/export', adminLimiter, async (req, res) => {
   const secret = req.headers['x-admin-secret'];
