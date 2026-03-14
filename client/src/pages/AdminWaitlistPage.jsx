@@ -144,32 +144,7 @@ export default function AdminWaitlistPage() {
     else { setSortKey(key); setSortDir('asc'); }
   }
 
-  if (!authed) {
-    return (
-      <div className="adm-root">
-        <form className="adm-gate" onSubmit={login}>
-          <div className="adm-gate-card">
-            <div className="adm-gate-lock">&#128274;</div>
-            <div className="adm-gate-title"><span>Cyber</span>Range TZ</div>
-            <div className="adm-gate-subtitle">Admin Dashboard</div>
-            <input
-              className="adm-gate-input"
-              type="password"
-              placeholder="Enter admin secret"
-              value={secret}
-              onChange={e => setSecret(e.target.value)}
-              autoFocus
-            />
-            {error && <div className="adm-gate-error">{error}</div>}
-            <button className="adm-gate-btn" type="submit" disabled={loading}>
-              {loading ? 'Checking...' : 'Access Dashboard'}
-            </button>
-          </div>
-        </form>
-      </div>
-    );
-  }
-
+  // All hooks MUST be called before any early return (Rules of Hooks)
   const entries = data?.entries || [];
 
   const filtered = useMemo(() =>
@@ -203,6 +178,32 @@ export default function AdminWaitlistPage() {
           .sort((a, b) => b.referral_count - a.referral_count)
       : []
   , [treeData]);
+
+  if (!authed) {
+    return (
+      <div className="adm-root">
+        <form className="adm-gate" onSubmit={login}>
+          <div className="adm-gate-card">
+            <div className="adm-gate-lock">&#128274;</div>
+            <div className="adm-gate-title"><span>Cyber</span>Range TZ</div>
+            <div className="adm-gate-subtitle">Admin Dashboard</div>
+            <input
+              className="adm-gate-input"
+              type="password"
+              placeholder="Enter admin secret"
+              value={secret}
+              onChange={e => setSecret(e.target.value)}
+              autoFocus
+            />
+            {error && <div className="adm-gate-error">{error}</div>}
+            <button className="adm-gate-btn" type="submit" disabled={loading}>
+              {loading ? 'Checking...' : 'Access Dashboard'}
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="adm-root">

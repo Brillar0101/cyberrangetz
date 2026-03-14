@@ -16,7 +16,6 @@ app.use(helmet());
 
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:3000',
-  'http://localhost:3003',
   'https://www.cyberrangetz.com',
   'https://cyberrangetz.com',
   'https://cyberrange-frontend.onrender.com',
