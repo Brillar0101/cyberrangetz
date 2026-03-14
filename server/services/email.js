@@ -1,52 +1,46 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// ── Gmail SMTP config ──────────────────────────────────────────────────────
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
-const SMTP_USER = process.env.SMTP_USER || 'cyberrangetz@gmail.com';
-const SMTP_PASS = process.env.SMTP_PASS;             // Gmail App Password (16 chars)
-const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER;
+// ── Resend config ─────────────────────────────────────────────────────────
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const FROM_NAME  = process.env.FROM_NAME || 'CyberRange TZ';
 const BASE_URL   = process.env.CLIENT_URL || 'https://cyberrangetz.com';
 const WHATSAPP_LINK = process.env.WHATSAPP_LINK || '';
 const SERVER_URL  = process.env.SERVER_URL || 'https://cyberrange-api.onrender.com';
 
-// Reusable transporter (created lazily, cached)
-let _transporter = null;
-function getTransporter() {
-  if (_transporter) return _transporter;
-  if (!SMTP_USER || !SMTP_PASS) {
-    console.warn('[email] SMTP_USER / SMTP_PASS not set — emails disabled');
+// Resend client (created lazily)
+let _resend = null;
+function getResend() {
+  if (_resend) return _resend;
+  if (!RESEND_API_KEY) {
+    console.warn('[email] RESEND_API_KEY not set — emails disabled');
     return null;
   }
-  _transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,   // true for 465, false for 587
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    tls: { rejectUnauthorized: false },
-  });
-  return _transporter;
+  _resend = new Resend(RESEND_API_KEY);
+  return _resend;
 }
 
 // ── Email wrapper ──────────────────────────────────────────────────────────
 async function sendEmail({ to, subject, html }) {
   console.log(`[email] Attempting to send "${subject}" to ${to}`);
-  console.log(`[email] SMTP_USER=${SMTP_USER}, SMTP_PASS=${SMTP_PASS ? '***set***' : '***NOT SET***'}, FROM=${FROM_EMAIL}`);
-  const transport = getTransporter();
-  if (!transport) {
-    console.warn('[email] No transporter — skipping');
+  const resend = getResend();
+  if (!resend) {
+    console.warn('[email] No Resend client — skipping');
     return;
   }
   try {
-    const info = await transport.sendMail({
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    const { data, error } = await resend.emails.send({
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
       to,
       subject,
       html,
     });
-    console.log(`[email] Sent successfully: ${info.messageId}`);
-    return info;
+    if (error) {
+      console.error(`[email] FAILED:`, error.message);
+      throw new Error(error.message);
+    }
+    console.log(`[email] Sent successfully: ${data.id}`);
+    return data;
   } catch (err) {
     console.error(`[email] FAILED:`, err.message);
     throw err;
@@ -360,5 +354,4 @@ module.exports = {
   sendWaitlistConfirmation,
   sendTierUnlockedEmail,
   sendNewsletter,
-  getTransporter,       // exported so you can verify SMTP connection
 };
