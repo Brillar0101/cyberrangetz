@@ -459,6 +459,66 @@ html, body, #root { height: 100%; overflow-x: hidden; overflow-y: auto; }
 }
 .cr-copy-btn:hover, .cr-copy-btn.copied { color: var(--green); }
 
+/* ── Email status ── */
+.cr-email-status {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.cr-email-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cr-email-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cr-email-dot.sent { background: var(--green); box-shadow: 0 0 6px rgba(30,181,58,0.5); }
+.cr-email-dot.not-sent { background: #f87171; box-shadow: 0 0 6px rgba(248,113,113,0.4); }
+.cr-email-dot.opened { background: var(--blue); box-shadow: 0 0 6px rgba(0,163,221,0.5); }
+.cr-email-status-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.55);
+}
+.cr-resend-btn {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: var(--green);
+  color: #000;
+  border: none;
+  border-radius: 100px;
+  padding: 8px 22px;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  margin-top: 2px;
+}
+.cr-resend-btn:hover { background: #22d644; }
+.cr-resend-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.cr-resend-btn.secondary {
+  background: transparent;
+  color: rgba(255,255,255,0.45);
+  border: 1px solid rgba(255,255,255,0.15);
+  font-size: 11px;
+  padding: 6px 18px;
+}
+.cr-resend-btn.secondary:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+.cr-resend-msg {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin: 0;
+}
+.cr-resend-msg.success { color: var(--green); }
+.cr-resend-msg.error { color: #f87171; }
+
 /* ─────────────────────────────────────────
    FEATURES SECTION
 ───────────────────────────────────────── */

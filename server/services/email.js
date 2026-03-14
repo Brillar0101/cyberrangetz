@@ -9,6 +9,7 @@ const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER;
 const FROM_NAME  = process.env.FROM_NAME || 'CyberRange TZ';
 const BASE_URL   = process.env.CLIENT_URL || 'https://cyberrangetz.com';
 const WHATSAPP_LINK = process.env.WHATSAPP_LINK || '';
+const SERVER_URL  = process.env.SERVER_URL || 'https://cyberrange-api.onrender.com';
 
 // Reusable transporter (created lazily, cached)
 let _transporter = null;
@@ -70,8 +71,15 @@ const STYLES = {
   footer:   'padding:24px 36px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6;',
 };
 
+// ── Tracking pixel helper ─────────────────────────────────────────────────
+function trackingPixel(waitlistId) {
+  if (!waitlistId) return '';
+  const apiBase = SERVER_URL.replace(/\/$/, '');
+  return `<img src="${apiBase}/api/waitlist/track/${waitlistId}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;" />`;
+}
+
 // ── Welcome / Confirmation Email ───────────────────────────────────────────
-function welcomeHtml({ firstName }) {
+function welcomeHtml({ firstName, waitlistId }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -143,6 +151,7 @@ ${WHATSAPP_LINK ? `
         </tr>
 
       </table>
+      ${trackingPixel(waitlistId)}
     </td></tr>
   </table>
 </body>
@@ -152,11 +161,11 @@ ${WHATSAPP_LINK ? `
 /**
  * Send the personalised welcome email after a new waitlist signup.
  */
-async function sendWaitlistConfirmation({ firstName, email }) {
+async function sendWaitlistConfirmation({ firstName, email, waitlistId }) {
   return sendEmail({
     to: email,
     subject: `Welcome to CyberRange TZ, ${firstName}!`,
-    html: welcomeHtml({ firstName }),
+    html: welcomeHtml({ firstName, waitlistId }),
   });
 }
 

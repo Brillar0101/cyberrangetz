@@ -144,10 +144,15 @@ router.post('/', signupLimiter, async (req, res) => {
     const { rows: countRow } = await pool.query('SELECT COUNT(*) FROM waitlist');
     const position = parseInt(countRow[0].count);
 
-    // Send confirmation email (non-blocking)
+    // Send confirmation email (non-blocking), mark email_sent on success
+    const newId = inserted[0].id;
     sendWaitlistConfirmation({
       firstName: firstName.trim(),
       email: cleanEmail,
+      waitlistId: newId,
+    }).then(() => {
+      pool.query('UPDATE waitlist SET email_sent = TRUE WHERE id = $1', [newId])
+        .catch(e => console.error('[db] Failed to mark email_sent:', e));
     }).catch(err => console.error('[email] Failed to send confirmation:', err));
 
     res.json({
@@ -190,6 +195,8 @@ router.get('/admin', adminLimiter, async (req, res) => {
         w.email,
         w.referral_code,
         w.referral_count,
+        w.email_sent,
+        w.email_opened_at,
         w.created_at,
         ref.email AS referred_by_email,
         ROW_NUMBER() OVER (ORDER BY w.created_at ASC) AS position
@@ -361,6 +368,84 @@ router.get('/admin/export', adminLimiter, async (req, res) => {
   } catch (err) {
     console.error('Export error:', err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/waitlist/track/:id — tracking pixel (records email open)
+const TRANSPARENT_GIF = Buffer.from(
+  'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'
+);
+router.get('/track/:id', async (req, res) => {
+  const id = parseInt(req.params.id);
+  if (id && !isNaN(id)) {
+    pool.query(
+      'UPDATE waitlist SET email_opened_at = NOW() WHERE id = $1 AND email_opened_at IS NULL',
+      [id]
+    ).catch(err => console.error('[track] Failed to record open:', err));
+  }
+  res.set({
+    'Content-Type': 'image/gif',
+    'Content-Length': TRANSPARENT_GIF.length,
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+  });
+  res.end(TRANSPARENT_GIF);
+});
+
+// GET /api/waitlist/email-status/:email — check email sent/opened status
+router.get('/email-status/:email', statsLimiter, async (req, res) => {
+  const email = (req.params.email || '').toLowerCase().trim();
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  try {
+    const { rows } = await pool.query(
+      'SELECT email_sent, email_opened_at FROM waitlist WHERE email = $1',
+      [email]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+
+    res.json({
+      emailSent: rows[0].email_sent || false,
+      emailOpened: !!rows[0].email_opened_at,
+      emailOpenedAt: rows[0].email_opened_at || null,
+    });
+  } catch (err) {
+    console.error('Email status error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/waitlist/resend — resend confirmation email
+const resendLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many resend requests, please try again later.' },
+});
+router.post('/resend', resendLimiter, async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  const cleanEmail = email.toLowerCase().trim();
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, first_name FROM waitlist WHERE email = $1',
+      [cleanEmail]
+    );
+    if (rows.length === 0) return res.status(404).json({ error: 'Email not found on waitlist' });
+
+    const { id, first_name } = rows[0];
+    await sendWaitlistConfirmation({
+      firstName: first_name,
+      email: cleanEmail,
+      waitlistId: id,
+    });
+    await pool.query('UPDATE waitlist SET email_sent = TRUE WHERE id = $1', [id]);
+
+    res.json({ success: true, message: 'Confirmation email resent' });
+  } catch (err) {
+    console.error('Resend error:', err);
+    res.status(500).json({ error: 'Failed to resend email' });
   }
 });
 
