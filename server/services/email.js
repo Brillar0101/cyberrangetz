@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 
 // ── Gmail SMTP config ──────────────────────────────────────────────────────
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465');
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
 const SMTP_USER = process.env.SMTP_USER || 'cyberrangetz@gmail.com';
 const SMTP_PASS = process.env.SMTP_PASS;             // Gmail App Password (16 chars)
 const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER;
