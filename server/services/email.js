@@ -97,13 +97,13 @@ function welcomeHtml({ firstName, waitlistId }) {
               Hey ${firstName}!
             </p>
             <p style="${STYLES.body}">
-              Thank you so much for signing up to the CyberRange TZ waitlist. We're really glad you're here.
+              Thank you so much for signing up to the CyberRange TZ waitlist. We are really glad you are here.
             </p>
             <p style="${STYLES.body}">
-              We're building Tanzania's first browser-based cybersecurity training lab, and your interest means a lot to us. We're working hard to get things ready and we'll keep you posted on our progress.
+              We are building Tanzania's first browser-based cybersecurity training lab, and your interest means a lot to us. We are working hard to get things ready and we will keep you posted on our progress.
             </p>
             <p style="${STYLES.body}">
-              In the meantime, we'll be sharing tips, tricks, and insights on cybersecurity that we think you'll find useful. Keep an eye on your inbox!
+              In the meantime, we will be sharing tips, tricks, and insights on cybersecurity that we think you will find useful. Keep an eye on your inbox!
             </p>
 ${WHATSAPP_LINK ? `
             <p style="${STYLES.body}">
