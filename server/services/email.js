@@ -66,10 +66,15 @@ const STYLES = {
 };
 
 // ── Tracking pixel helper ─────────────────────────────────────────────────
+const crypto = require('crypto');
+const TRACKING_SECRET = process.env.TRACKING_SECRET || process.env.JWT_SECRET || 'tracking-fallback';
+
 function trackingPixel(waitlistId) {
   if (!waitlistId) return '';
   const apiBase = SERVER_URL.replace(/\/$/, '');
-  return `<img src="${apiBase}/api/waitlist/track/${waitlistId}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;" />`;
+  const sig = crypto.createHmac('sha256', TRACKING_SECRET)
+    .update(String(waitlistId)).digest('hex').slice(0, 16);
+  return `<img src="${apiBase}/api/waitlist/track/${waitlistId}?sig=${sig}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;" />`;
 }
 
 // ── Welcome / Confirmation Email ───────────────────────────────────────────

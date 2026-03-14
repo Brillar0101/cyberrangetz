@@ -4,6 +4,7 @@ const { pool } = require('../db');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const { sendWaitlistConfirmation, sendTierUnlockedEmail, sendNewsletter } = require('../services/email');
+const sanitizeHtml = require('sanitize-html');
 
 // ── Rate limiters ────────────────────────────────────────────────────────────
 
@@ -319,6 +320,13 @@ router.post('/admin/newsletter', adminLimiter, async (req, res) => {
     return res.status(400).json({ error: 'subject and bodyContent are required' });
   }
 
+  // Sanitize HTML to prevent phishing/malicious content
+  const cleanBody = sanitizeHtml(bodyContent, {
+    allowedTags: ['p', 'br', 'strong', 'em', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3'],
+    allowedAttributes: { 'a': ['href'] },
+    allowedSchemes: ['https', 'http', 'mailto'],
+  });
+
   try {
     const { rows } = await pool.query(
       'SELECT first_name, email FROM waitlist ORDER BY created_at ASC'
@@ -334,7 +342,7 @@ router.post('/admin/newsletter', adminLimiter, async (req, res) => {
           firstName: row.first_name,
           email: row.email,
           subject,
-          bodyContent,
+          bodyContent: cleanBody,
         });
         sent++;
         // Small delay to avoid SMTP rate limits
@@ -375,9 +383,19 @@ router.get('/admin/export', adminLimiter, async (req, res) => {
 const TRANSPARENT_GIF = Buffer.from(
   'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'
 );
-router.get('/track/:id', async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (id && !isNaN(id)) {
+const TRACKING_SECRET = process.env.TRACKING_SECRET || process.env.JWT_SECRET || 'tracking-fallback';
+
+function signTrackingId(id) {
+  return crypto.createHmac('sha256', TRACKING_SECRET)
+    .update(String(id)).digest('hex').slice(0, 16);
+}
+
+router.get('/track/:id', statsLimiter, async (req, res) => {
+  const id = Number(req.params.id);
+  const sig = req.query.sig || '';
+
+  // Verify HMAC signature to prevent scanning
+  if (Number.isInteger(id) && id > 0 && sig === signTrackingId(id)) {
     pool.query(
       'UPDATE waitlist SET email_opened_at = NOW() WHERE id = $1 AND email_opened_at IS NULL',
       [id]
@@ -392,21 +410,25 @@ router.get('/track/:id', async (req, res) => {
 });
 
 // GET /api/waitlist/email-status/:email — check email sent/opened status
+// Requires ?code= referral code to prove ownership (prevents enumeration)
 router.get('/email-status/:email', statsLimiter, async (req, res) => {
   const email = (req.params.email || '').toLowerCase().trim();
-  if (!email) return res.status(400).json({ error: 'Email required' });
+  const code = (req.query.code || '').slice(0, 20);
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Valid email required' });
+  }
+  if (!code) return res.status(400).json({ error: 'Referral code required' });
 
   try {
     const { rows } = await pool.query(
-      'SELECT email_sent, email_opened_at FROM waitlist WHERE email = $1',
-      [email]
+      'SELECT email_sent, email_opened_at FROM waitlist WHERE email = $1 AND referral_code = $2',
+      [email, code]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
     res.json({
       emailSent: rows[0].email_sent || false,
       emailOpened: !!rows[0].email_opened_at,
-      emailOpenedAt: rows[0].email_opened_at || null,
     });
   } catch (err) {
     console.error('Email status error:', err);
@@ -423,16 +445,17 @@ const resendLimiter = rateLimit({
   message: { error: 'Too many resend requests, please try again later.' },
 });
 router.post('/resend', resendLimiter, async (req, res) => {
-  const { email } = req.body;
+  const { email, referralCode } = req.body;
   if (!email) return res.status(400).json({ error: 'Email required' });
+  if (!referralCode) return res.status(400).json({ error: 'Referral code required' });
 
   const cleanEmail = email.toLowerCase().trim();
   try {
     const { rows } = await pool.query(
-      'SELECT id, first_name FROM waitlist WHERE email = $1',
-      [cleanEmail]
+      'SELECT id, first_name FROM waitlist WHERE email = $1 AND referral_code = $2',
+      [cleanEmail, referralCode.slice(0, 20)]
     );
-    if (rows.length === 0) return res.status(404).json({ error: 'Email not found on waitlist' });
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
 
     const { id, first_name } = rows[0];
     await sendWaitlistConfirmation({

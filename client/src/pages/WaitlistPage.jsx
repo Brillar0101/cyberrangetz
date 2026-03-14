@@ -38,6 +38,7 @@ export default function WaitlistPage() {
   const [emailOpened, setEmailOpened]   = useState(false);
   const [resending, setResending]       = useState(false);
   const [resendMsg, setResendMsg]       = useState('');
+  const [resendOk, setResendOk]         = useState(false);
   const inputRef = useRef();
 
   const refCode = new URLSearchParams(window.location.search).get('ref') || '';
@@ -79,7 +80,7 @@ export default function WaitlistPage() {
   useEffect(() => {
     if (status !== 'done' && status !== 'celebrate') return;
     if (!email) return;
-    fetch(`${API}/api/waitlist/email-status/${encodeURIComponent(email)}`)
+    fetch(`${API}/api/waitlist/email-status/${encodeURIComponent(email)}?code=${encodeURIComponent(referralCode)}`)
       .then(r => r.json())
       .then(d => {
         setEmailSent(d.emailSent || false);
@@ -153,15 +154,17 @@ export default function WaitlistPage() {
   async function handleResend() {
     setResending(true);
     setResendMsg('');
+    setResendOk(false);
     try {
       const res = await fetch(`${API}/api/waitlist/resend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, referralCode }),
       });
       const data = await res.json();
       if (data.success) {
         setResendMsg('Email sent! Check your inbox.');
+        setResendOk(true);
         setEmailSent(true);
       } else {
         setResendMsg(data.error || 'Failed to resend.');
@@ -419,7 +422,7 @@ export default function WaitlistPage() {
                         </button>
                       )}
                       {resendMsg && (
-                        <p className={`cr-resend-msg ${resendMsg.includes('sent') ? 'success' : 'error'}`}>
+                        <p className={`cr-resend-msg ${resendOk ? 'success' : 'error'}`}>
                           {resendMsg}
                         </p>
                       )}

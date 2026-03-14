@@ -149,8 +149,9 @@ export default function AdminWaitlistPage() {
       }
     } catch {
       alert('Failed to resend email.');
+    } finally {
+      setResendingId(null);
     }
-    setResendingId(null);
   }
 
   function switchTab(t) {
