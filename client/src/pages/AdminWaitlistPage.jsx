@@ -73,11 +73,30 @@ export default function AdminWaitlistPage() {
   }
 
   async function refresh() {
-    const res = await fetch(`${API}/api/waitlist/admin`, {
-      headers: { 'x-admin-secret': secret },
-    });
-    const json = await res.json();
-    setData(json);
+    try {
+      const res = await fetch(`${API}/api/waitlist/admin`, {
+        headers: { 'x-admin-secret': secret },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      json.count = parseInt(json.count) || 0;
+      if (Array.isArray(json.entries)) {
+        json.entries = json.entries.map(e => ({
+          ...e,
+          position: String(e.position ?? ''),
+          referral_count: String(e.referral_count ?? 0),
+          first_name: String(e.first_name ?? ''),
+          last_name: String(e.last_name ?? ''),
+          email: String(e.email ?? ''),
+          referral_code: String(e.referral_code ?? ''),
+          referred_by_email: e.referred_by_email ? String(e.referred_by_email) : null,
+          created_at: e.created_at ? String(e.created_at) : null,
+        }));
+      }
+      setData(json);
+    } catch (err) {
+      console.error('[admin] Refresh error:', err);
+    }
   }
 
   async function loadTopReferrers() {
