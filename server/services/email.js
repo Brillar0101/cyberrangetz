@@ -91,61 +91,38 @@ function welcomeHtml({ firstName, waitlistId }) {
     <tr><td align="center">
       <table cellpadding="0" cellspacing="0" style="${STYLES.card}">
 
-        <!-- Logo -->
-        <tr>
-          <td style="${STYLES.header}">
-            <span style="${STYLES.logo}">
-              <span style="${STYLES.logoAccent}">Cyber</span>Range TZ
-            </span>
-          </td>
-        </tr>
-
-        <!-- Body -->
         <tr>
           <td style="${STYLES.section}">
-            <h1 style="${STYLES.h1}">Hi ${firstName},</h1>
             <p style="${STYLES.body}">
-              Thank you for joining our waitlist as a cybersecurity enthusiast &mdash;
-              we know how excited you are, and we are just as excited!
+              Hey ${firstName}!
             </p>
             <p style="${STYLES.body}">
-              While we are working on launching the product, we will be sharing
-              <strong style="color:#fff;">tips, tricks, and insights</strong> useful in today's
-              cybersecurity industry. We'd love for you to follow along.
+              Thank you so much for signing up to the CyberRange TZ waitlist. We're really glad you're here.
             </p>
             <p style="${STYLES.body}">
-              Stay tuned — exciting things are coming soon.
+              We're building Tanzania's first browser-based cybersecurity training lab, and your interest means a lot to us. We're working hard to get things ready and we'll keep you posted on our progress.
             </p>
-          </td>
-        </tr>
+            <p style="${STYLES.body}">
+              In the meantime, we'll be sharing tips, tricks, and insights on cybersecurity that we think you'll find useful. Keep an eye on your inbox!
+            </p>
+            <p style="${STYLES.body}">
+              If you have any questions or just want to say hi, feel free to reply to this email. We read everything.
+            </p>
 ${WHATSAPP_LINK ? `
-        <!-- CTA -->
-        <tr>
-          <td style="${STYLES.btnWrap}">
-            <a href="${WHATSAPP_LINK}" style="${STYLES.btn}" target="_blank">
-              Join WhatsApp Community &rarr;
-            </a>
-          </td>
-        </tr>` : ''}
-
-        <!-- Divider -->
-        <tr><td><div style="${STYLES.divider}"></div></td></tr>
-
-        <!-- Sign-off -->
-        <tr>
-          <td style="padding:28px 36px 12px;">
-            <p style="margin:0 0 4px;font-size:14px;color:rgba(255,255,255,0.65);">Best,</p>
-            <p style="margin:0;font-size:14px;font-weight:700;color:#fff;">
-              The CyberRange TZ Team
+            <p style="${STYLES.body}">
+              You can also <a href="${WHATSAPP_LINK}" style="color:${BRAND_GREEN};text-decoration:underline;" target="_blank">join our WhatsApp community</a> to connect with others who are just as excited about cybersecurity.
+            </p>` : ''}
+            <p style="margin:0 0 4px;font-size:15px;line-height:1.75;color:rgba(255,255,255,0.75);">
+              Talk soon,<br />
+              Barakaeli & the CyberRange TZ team
             </p>
           </td>
         </tr>
 
-        <!-- Footer -->
         <tr>
-          <td style="${STYLES.footer}">
-            &copy; ${new Date().getFullYear()} CyberRange TZ. Dar es Salaam, Tanzania.<br />
-            <a href="${BASE_URL}" style="color:${BRAND_GREEN};text-decoration:none;">${BASE_URL.replace('https://', '')}</a>
+          <td style="padding:16px 36px;font-size:11px;color:rgba(255,255,255,0.2);line-height:1.6;">
+            CyberRange TZ &middot; Dar es Salaam, Tanzania<br />
+            <a href="${BASE_URL}" style="color:rgba(255,255,255,0.3);text-decoration:none;">${BASE_URL.replace('https://', '')}</a>
           </td>
         </tr>
 
