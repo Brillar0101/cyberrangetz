@@ -423,18 +423,26 @@ export default function AdminWaitlistPage() {
                   <div className="adm-nl-preview-logo">
                     <span style={{ color: 'var(--green)' }}>Cyber</span>Range TZ
                   </div>
-                  <div className="adm-nl-preview-divider" />
-                  <div className="adm-nl-preview-subject">{nlSubject || '(No subject)'}</div>
+                  <div className="adm-nl-preview-accent" />
+                  <div className="adm-nl-preview-label">Newsletter</div>
                   <div className="adm-nl-preview-greeting">Hi FirstName,</div>
                   <div className="adm-nl-preview-body">
                     {nlBody.split('\n').map((line, i) => (
                       <p key={i} style={{ margin: '0 0 10px' }}>{line || '\u00A0'}</p>
                     ))}
                   </div>
+                  <div className="adm-nl-preview-tipbox">
+                    <div className="adm-nl-preview-tipbox-title">Stay Connected</div>
+                    <div className="adm-nl-preview-tipbox-text">Follow us for cybersecurity tips, industry news, and early access updates.</div>
+                  </div>
+                  <div className="adm-nl-preview-cta">Visit CyberRange TZ &rarr;</div>
                   <div className="adm-nl-preview-divider" />
                   <div className="adm-nl-preview-signoff">
-                    <p style={{ margin: '0 0 4px', color: 'rgba(255,255,255,0.6)' }}>Best,</p>
+                    <p style={{ margin: '0 0 4px', color: 'rgba(255,255,255,0.55)' }}>Best,</p>
                     <p style={{ margin: 0, fontWeight: 700 }}>The CyberRange TZ Team</p>
+                  </div>
+                  <div className="adm-nl-preview-footer">
+                    You received this because you joined the CyberRange TZ waitlist.
                   </div>
                 </div>
               </div>

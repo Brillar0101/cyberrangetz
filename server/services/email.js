@@ -235,6 +235,7 @@ function newsletterHtml({ firstName, subject, bodyContent }) {
     <tr><td align="center">
       <table cellpadding="0" cellspacing="0" style="${STYLES.card}">
 
+        <!-- Logo header -->
         <tr>
           <td style="${STYLES.header}">
             <span style="${STYLES.logo}">
@@ -243,30 +244,86 @@ function newsletterHtml({ firstName, subject, bodyContent }) {
           </td>
         </tr>
 
+        <!-- Green accent bar -->
+        <tr>
+          <td style="padding:0;">
+            <div style="height:3px;background:linear-gradient(90deg, ${BRAND_GREEN}, ${BRAND_GREEN}44);"></div>
+          </td>
+        </tr>
+
+        <!-- Subject label -->
+        <tr>
+          <td style="padding:28px 36px 0;">
+            <p style="margin:0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);">
+              Newsletter
+            </p>
+          </td>
+        </tr>
+
+        <!-- Greeting & body -->
         <tr>
           <td style="${STYLES.section}">
-            <h1 style="${STYLES.h1}">Hi ${firstName},</h1>
-            <div style="font-size:15px;line-height:1.75;color:rgba(255,255,255,0.75);">
+            <h1 style="margin:0 0 24px;font-size:24px;font-weight:700;line-height:1.3;color:#ffffff;">
+              Hi ${firstName},
+            </h1>
+            <div style="font-size:15px;line-height:1.8;color:rgba(255,255,255,0.75);">
               ${bodyContent}
             </div>
           </td>
         </tr>
 
+        <!-- Tip box (optional visual element) -->
+        <tr>
+          <td style="padding:0 36px 28px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(30,181,58,0.06);border:1px solid rgba(30,181,58,0.15);border-radius:10px;">
+              <tr>
+                <td style="padding:16px 20px;">
+                  <p style="margin:0 0 4px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:${BRAND_GREEN};font-weight:700;">
+                    Stay Connected
+                  </p>
+                  <p style="margin:0;font-size:13px;line-height:1.6;color:rgba(255,255,255,0.6);">
+                    Follow us for cybersecurity tips, industry news, and early access updates.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- CTA button -->
+        <tr>
+          <td style="padding:0 36px 32px;">
+            <a href="${BASE_URL}" style="${STYLES.btn}" target="_blank">
+              Visit CyberRange TZ &rarr;
+            </a>
+          </td>
+        </tr>
+
+        <!-- Divider -->
         <tr><td><div style="${STYLES.divider}"></div></td></tr>
 
+        <!-- Sign-off -->
         <tr>
           <td style="padding:28px 36px 12px;">
-            <p style="margin:0 0 4px;font-size:14px;color:rgba(255,255,255,0.65);">Best,</p>
+            <p style="margin:0 0 4px;font-size:14px;color:rgba(255,255,255,0.55);">Best,</p>
             <p style="margin:0;font-size:14px;font-weight:700;color:#fff;">
               The CyberRange TZ Team
             </p>
           </td>
         </tr>
 
+        <!-- Footer -->
         <tr>
           <td style="${STYLES.footer}">
-            &copy; ${new Date().getFullYear()} CyberRange TZ. Dar es Salaam, Tanzania.<br />
-            <a href="${BASE_URL}" style="color:${BRAND_GREEN};text-decoration:none;">${BASE_URL.replace('https://', '')}</a>
+            <p style="margin:0 0 8px;">
+              &copy; ${new Date().getFullYear()} CyberRange TZ. Dar es Salaam, Tanzania.
+            </p>
+            <p style="margin:0;">
+              <a href="${BASE_URL}" style="color:${BRAND_GREEN};text-decoration:none;">${BASE_URL.replace('https://', '')}</a>
+            </p>
+            <p style="margin:12px 0 0;font-size:10px;color:rgba(255,255,255,0.2);">
+              You received this because you joined the CyberRange TZ waitlist.
+            </p>
           </td>
         </tr>
 

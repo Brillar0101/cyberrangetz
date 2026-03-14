@@ -517,9 +517,56 @@
   color: rgba(255,255,255,0.7);
   margin-bottom: 20px;
 }
+.adm-nl-preview-accent {
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), rgba(30,181,58,0.25));
+  margin-bottom: 20px;
+}
+.adm-nl-preview-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.adm-nl-preview-tipbox {
+  background: rgba(30,181,58,0.06);
+  border: 1px solid rgba(30,181,58,0.15);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+.adm-nl-preview-tipbox-title {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--green);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.adm-nl-preview-tipbox-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.5);
+}
+.adm-nl-preview-cta {
+  display: inline-block;
+  background: var(--green);
+  color: #000;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 12px 28px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
 .adm-nl-preview-signoff {
   font-size: 13px;
   color: rgba(255,255,255,0.6);
+}
+.adm-nl-preview-footer {
+  margin-top: 16px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
 }
 
 /* ── Responsive ── */
