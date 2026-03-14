@@ -279,6 +279,7 @@
 }
 .adm-dot.sent { background: var(--green); box-shadow: 0 0 5px rgba(30,181,58,0.5); }
 .adm-dot.not-sent { background: var(--red); box-shadow: 0 0 5px rgba(248,113,113,0.4); }
+.adm-dot.bounced { background: #f97316; box-shadow: 0 0 5px rgba(249,115,22,0.4); }
 .adm-opened-badge {
   font-size: 9px;
   font-weight: 700;
@@ -307,9 +308,25 @@
 .adm-resend-btn:hover { background: rgba(30,181,58,0.1); border-color: var(--green); }
 .adm-resend-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ── Bounced badge ── */
+.adm-bounced-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(249,115,22,0.15);
+  color: #f97316;
+  border: 1px solid rgba(249,115,22,0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 4px;
+  cursor: help;
+}
+
 /* ── Stat colors ── */
 .adm-stat-sent { color: var(--blue); }
 .adm-stat-opened { color: var(--yellow); }
+.adm-stat-bounced { color: #f97316; }
 
 /* ── Filter select ── */
 .adm-filter-select {

@@ -270,6 +270,7 @@ export default function AdminWaitlistPage() {
       if (emailFilter === 'sent' && !r.email_sent) return false;
       if (emailFilter === 'not-sent' && r.email_sent) return false;
       if (emailFilter === 'opened' && !r.email_opened_at) return false;
+      if (emailFilter === 'bounced' && !r.email_bounced_at) return false;
       // Search filter
       const q = search.toLowerCase();
       if (!q) return true;
@@ -356,6 +357,10 @@ export default function AdminWaitlistPage() {
             <div className="adm-stat-num adm-stat-opened">{entries.filter(r => r.email_opened_at).length}</div>
             <div className="adm-stat-label">Emails opened</div>
           </div>
+          <div className="adm-stat">
+            <div className="adm-stat-num adm-stat-bounced">{entries.filter(r => r.email_bounced_at).length}</div>
+            <div className="adm-stat-label">Bounced</div>
+          </div>
         </div>
         <div className="adm-header-actions">
           <button className="adm-logout" onClick={() => { refresh(); setTopReferrers(null); setTreeData(null); }}>↻ Refresh</button>
@@ -388,6 +393,7 @@ export default function AdminWaitlistPage() {
               <option value="sent">Sent</option>
               <option value="not-sent">Not Sent</option>
               <option value="opened">Opened</option>
+              <option value="bounced">Bounced</option>
             </select>
             <div className="adm-count-pill">{filtered.length} of {entries.length} entries</div>
             {selected.size > 0 && (
@@ -449,10 +455,19 @@ export default function AdminWaitlistPage() {
                       </td>
                       <td className="td-date">{fmt(row.created_at)}</td>
                       <td className="td-email-status">
-                        <span className={`adm-dot ${row.email_sent ? 'sent' : 'not-sent'}`} />
-                        {row.email_sent ? 'Sent' : 'Not sent'}
-                        {row.email_opened_at && (
-                          <span className="adm-opened-badge" title={`Opened: ${fmt(row.email_opened_at)}`}>Opened</span>
+                        {row.email_bounced_at ? (
+                          <>
+                            <span className="adm-dot bounced" />
+                            <span className="adm-bounced-badge" title={row.bounce_reason || 'Bounced'}>Bounced</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className={`adm-dot ${row.email_sent ? 'sent' : 'not-sent'}`} />
+                            {row.email_sent ? 'Sent' : 'Not sent'}
+                            {row.email_opened_at && (
+                              <span className="adm-opened-badge" title={`Opened: ${fmt(row.email_opened_at)}`}>Opened</span>
+                            )}
+                          </>
                         )}
                       </td>
                       <td>

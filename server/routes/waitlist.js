@@ -198,6 +198,8 @@ router.get('/admin', adminLimiter, async (req, res) => {
         w.referral_count,
         w.email_sent,
         w.email_opened_at,
+        w.email_bounced_at,
+        w.bounce_reason,
         w.created_at,
         ref.email AS referred_by_email,
         ROW_NUMBER() OVER (ORDER BY w.created_at ASC) AS position
@@ -464,6 +466,47 @@ router.get('/email-status/:email', statsLimiter, async (req, res) => {
     });
   } catch (err) {
     console.error('Email status error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// POST /api/waitlist/webhook/resend — Resend webhook for bounce/complaint events
+const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || '';
+
+router.post('/webhook/resend', express.json(), async (req, res) => {
+  // Verify webhook secret via query param
+  const secret = req.query.secret || '';
+  if (!RESEND_WEBHOOK_SECRET || secret !== RESEND_WEBHOOK_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { type, data } = req.body;
+  if (!type || !data) {
+    return res.status(400).json({ error: 'Invalid payload' });
+  }
+
+  const recipientEmail = (data.to && data.to[0]) || data.email_address || '';
+  if (!recipientEmail) {
+    return res.status(200).json({ received: true });
+  }
+
+  try {
+    if (type === 'email.bounced' || type === 'email.complained') {
+      const reason = type === 'email.bounced'
+        ? (data.bounce?.message || 'Bounced').slice(0, 255)
+        : 'Marked as spam';
+
+      await pool.query(
+        `UPDATE waitlist SET email_bounced_at = NOW(), bounce_reason = $1
+         WHERE LOWER(email) = LOWER($2) AND email_bounced_at IS NULL`,
+        [reason, recipientEmail]
+      );
+      console.log(`[webhook] ${type} recorded for ${recipientEmail}`);
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('[webhook] Error processing event:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
