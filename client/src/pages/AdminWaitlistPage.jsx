@@ -138,7 +138,7 @@ export default function AdminWaitlistPage() {
       const res = await fetch(`${API}/api/waitlist/resend`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: row.email }),
+        body: JSON.stringify({ email: row.email, referralCode: row.referral_code }),
       });
       const json = await res.json();
       if (json.success) {
