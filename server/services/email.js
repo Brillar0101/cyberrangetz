@@ -105,16 +105,13 @@ function welcomeHtml({ firstName, waitlistId }) {
             <p style="${STYLES.body}">
               In the meantime, we'll be sharing tips, tricks, and insights on cybersecurity that we think you'll find useful. Keep an eye on your inbox!
             </p>
-            <p style="${STYLES.body}">
-              If you have any questions or just want to say hi, feel free to reply to this email. We read everything.
-            </p>
 ${WHATSAPP_LINK ? `
             <p style="${STYLES.body}">
               You can also <a href="${WHATSAPP_LINK}" style="color:${BRAND_GREEN};text-decoration:underline;" target="_blank">join our WhatsApp community</a> to connect with others who are just as excited about cybersecurity.
             </p>` : ''}
             <p style="margin:0 0 4px;font-size:15px;line-height:1.75;color:rgba(255,255,255,0.75);">
               Talk soon,<br />
-              Barakaeli & the CyberRange TZ team
+              The CyberRange TZ Team
             </p>
           </td>
         </tr>
