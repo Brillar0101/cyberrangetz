@@ -41,10 +41,29 @@ export default function AdminWaitlistPage() {
         headers: { 'x-admin-secret': secret },
       });
       if (res.status === 401) { setError('Wrong secret.'); setLoading(false); return; }
+      if (!res.ok) { setError(`Server error (${res.status})`); setLoading(false); return; }
       const json = await res.json();
+      console.log('[admin] API response:', JSON.stringify(json).slice(0, 500));
+      // Ensure count is a number
+      json.count = parseInt(json.count) || 0;
+      // Ensure entries are safe to render
+      if (Array.isArray(json.entries)) {
+        json.entries = json.entries.map(e => ({
+          ...e,
+          position: String(e.position ?? ''),
+          referral_count: String(e.referral_count ?? 0),
+          first_name: String(e.first_name ?? ''),
+          last_name: String(e.last_name ?? ''),
+          email: String(e.email ?? ''),
+          referral_code: String(e.referral_code ?? ''),
+          referred_by_email: e.referred_by_email ? String(e.referred_by_email) : null,
+          created_at: e.created_at ? String(e.created_at) : null,
+        }));
+      }
       setData(json);
       setAuthed(true);
-    } catch {
+    } catch (err) {
+      console.error('[admin] Login error:', err);
       setError('Could not connect to server.');
     }
     setLoading(false);
