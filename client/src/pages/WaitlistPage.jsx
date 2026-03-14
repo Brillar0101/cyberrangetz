@@ -34,11 +34,6 @@ export default function WaitlistPage() {
   const [videoError, setVideoError] = useState(false);
   const [confetti, setConfetti]     = useState([]);
   const [tiers, setTiers]           = useState([]);
-  const [emailSent, setEmailSent]       = useState(null);
-  const [emailOpened, setEmailOpened]   = useState(false);
-  const [resending, setResending]       = useState(false);
-  const [resendMsg, setResendMsg]       = useState('');
-  const [resendOk, setResendOk]         = useState(false);
   const inputRef = useRef();
 
   const refCode = new URLSearchParams(window.location.search).get('ref') || '';
@@ -75,19 +70,6 @@ export default function WaitlistPage() {
         { name: 'Founding Member', required_referrals: 10 },
       ]));
   }, []);
-
-  // Check email status when signed up
-  useEffect(() => {
-    if (status !== 'done' && status !== 'celebrate') return;
-    if (!email) return;
-    fetch(`${API}/api/waitlist/email-status/${encodeURIComponent(email)}?code=${encodeURIComponent(referralCode)}`)
-      .then(r => r.json())
-      .then(d => {
-        setEmailSent(d.emailSent || false);
-        setEmailOpened(d.emailOpened || false);
-      })
-      .catch(() => {});
-  }, [status, email]);
 
   // Poll referral count every 30s when signed up
   useEffect(() => {
@@ -149,30 +131,6 @@ export default function WaitlistPage() {
         setTimeout(() => setStatus('done'), 3200);
       } else { setStatus('error'); }
     } catch { setStatus('error'); }
-  }
-
-  async function handleResend() {
-    setResending(true);
-    setResendMsg('');
-    setResendOk(false);
-    try {
-      const res = await fetch(`${API}/api/waitlist/resend`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, referralCode }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setResendMsg('Email sent! Check your inbox.');
-        setResendOk(true);
-        setEmailSent(true);
-      } else {
-        setResendMsg(data.error || 'Failed to resend.');
-      }
-    } catch {
-      setResendMsg('Failed to resend. Try again later.');
-    }
-    setResending(false);
   }
 
   const shareUrl = referralCode
@@ -388,45 +346,6 @@ export default function WaitlistPage() {
                       </a>
                     </div>
 
-                    {/* Email status */}
-                    <div className="cr-email-status">
-                      <div className="cr-email-status-row">
-                        <span className={`cr-email-dot ${emailSent ? 'sent' : 'not-sent'}`} />
-                        <span className="cr-email-status-text">
-                          {emailSent === null ? 'Checking email status...' :
-                           emailSent ? 'Confirmation email sent' : 'Email not sent yet'}
-                        </span>
-                      </div>
-                      {emailOpened && (
-                        <div className="cr-email-status-row">
-                          <span className="cr-email-dot opened" />
-                          <span className="cr-email-status-text">Email opened</span>
-                        </div>
-                      )}
-                      {!emailSent && emailSent !== null && (
-                        <button
-                          className="cr-resend-btn"
-                          onClick={handleResend}
-                          disabled={resending}
-                        >
-                          {resending ? 'Sending...' : 'Resend Email'}
-                        </button>
-                      )}
-                      {emailSent && (
-                        <button
-                          className="cr-resend-btn secondary"
-                          onClick={handleResend}
-                          disabled={resending}
-                        >
-                          {resending ? 'Sending...' : 'Resend Email'}
-                        </button>
-                      )}
-                      {resendMsg && (
-                        <p className={`cr-resend-msg ${resendOk ? 'success' : 'error'}`}>
-                          {resendMsg}
-                        </p>
-                      )}
-                    </div>
                   </div>
                 )}
               </>
