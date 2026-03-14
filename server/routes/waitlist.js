@@ -6,6 +6,16 @@ const rateLimit = require('express-rate-limit');
 const { sendWaitlistConfirmation, sendTierUnlockedEmail, sendNewsletter } = require('../services/email');
 const sanitizeHtml = require('sanitize-html');
 
+// ── Timing-safe secret comparison ────────────────────────────────────────────
+const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || '';
+
+function safeCompare(a, b) {
+  const key = Buffer.from('cr-hmac-key');
+  const aBuf = crypto.createHmac('sha256', key).update(String(a)).digest();
+  const bBuf = crypto.createHmac('sha256', key).update(String(b)).digest();
+  return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
 // ── Rate limiters ────────────────────────────────────────────────────────────
 
 const signupLimiter = rateLimit({
@@ -55,6 +65,7 @@ router.post('/', signupLimiter, async (req, res) => {
   const cleanEmail = email.toLowerCase().trim();
 
   const client = await pool.connect();
+  let clientReleased = false;
   try {
     await client.query('BEGIN');
 
@@ -82,6 +93,8 @@ router.post('/', signupLimiter, async (req, res) => {
     // If already on waitlist, track the duplicate attempt and return their existing code
     if (inserted.length === 0) {
       await client.query('COMMIT');
+      client.release();
+      clientReleased = true;
       pool.query(
         'UPDATE waitlist SET duplicate_attempts = duplicate_attempts + 1, last_duplicate_at = NOW() WHERE email = $1',
         [cleanEmail]
@@ -171,7 +184,7 @@ router.post('/', signupLimiter, async (req, res) => {
     console.error('Waitlist error:', err);
     res.status(500).json({ error: 'Server error' });
   } finally {
-    client.release();
+    if (!clientReleased) client.release();
   }
 });
 
@@ -337,7 +350,7 @@ router.post('/admin/newsletter', adminLimiter, async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      'SELECT first_name, email FROM waitlist ORDER BY created_at ASC'
+      'SELECT first_name, email FROM waitlist WHERE email_bounced_at IS NULL ORDER BY created_at ASC'
     );
 
     let sent = 0;
@@ -477,8 +490,6 @@ router.get('/email-status/:email', statsLimiter, async (req, res) => {
 });
 
 // POST /api/waitlist/webhook/resend — Resend webhook for bounce/complaint events
-const RESEND_WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET || '';
-
 const webhookLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -486,16 +497,9 @@ const webhookLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-function safeCompare(a, b) {
-  const aBuf = Buffer.from(String(a));
-  const bBuf = Buffer.from(String(b));
-  if (aBuf.length !== bBuf.length) return false;
-  return crypto.timingSafeEqual(aBuf, bBuf);
-}
-
 router.post('/webhook/resend', webhookLimiter, express.json(), async (req, res) => {
-  // Verify webhook secret via header or query param
-  const secret = req.headers['x-webhook-secret'] || req.query.secret || '';
+  // Verify webhook secret via header
+  const secret = req.headers['x-webhook-secret'] || '';
   if (!RESEND_WEBHOOK_SECRET || !safeCompare(secret, RESEND_WEBHOOK_SECRET)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -506,7 +510,7 @@ router.post('/webhook/resend', webhookLimiter, express.json(), async (req, res) 
   }
 
   const recipientEmail = (data.to && data.to[0]) || data.email_address || '';
-  if (!recipientEmail) {
+  if (!recipientEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail) || recipientEmail.length > 254) {
     return res.status(200).json({ received: true });
   }
 

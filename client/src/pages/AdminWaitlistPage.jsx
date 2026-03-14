@@ -58,7 +58,6 @@ export default function AdminWaitlistPage() {
       if (res.status === 401) { setError('Wrong secret.'); setLoading(false); return; }
       if (!res.ok) { setError(`Server error (${res.status})`); setLoading(false); return; }
       const json = await res.json();
-      console.log('[admin] Loaded', json.count, 'entries');
       // Ensure count is a number
       json.count = parseInt(json.count) || 0;
       // Ensure entries are safe to render
@@ -285,8 +284,7 @@ export default function AdminWaitlistPage() {
   const sorted = useMemo(() =>
     [...filtered].sort((a, b) => {
       let av = a[sortKey], bv = b[sortKey];
-      if (sortKey === 'referral_count') { av = parseInt(av) || 0; bv = parseInt(bv) || 0; }
-      if (sortKey === 'position') { av = parseInt(av); bv = parseInt(bv); }
+      if (['referral_count', 'position', 'duplicate_attempts'].includes(sortKey)) { av = parseInt(av) || 0; bv = parseInt(bv) || 0; }
       if (av < bv) return sortDir === 'asc' ? -1 : 1;
       if (av > bv) return sortDir === 'asc' ? 1 : -1;
       return 0;
